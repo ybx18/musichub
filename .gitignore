@@ -1,0 +1,21 @@
+# 依赖 / 构建产物
+node_modules/
+dist/
+build/
+*.log
+
+# 本地配置（含私人音源，请勿提交）
+app/js/sources.config.local.js
+*.local.js
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# 压缩包 / 临时
+*.zip
+*.tar.gz
+tmp/

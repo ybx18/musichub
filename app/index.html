@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light">
+<title>Music Hub</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- ===== 图标定义 ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-note" viewBox="0 0 16 16">
+      <path d="M6 12.2a2 2 0 1 1-1.4-1.9V4.3l7-1.6v6.9a2 2 0 1 1-1.4-1.9V4.4L6 5.5v6.7z"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <circle cx="7" cy="7" r="4.6"/><path d="M10.4 10.4 14 14"/>
+    </symbol>
+    <symbol id="i-back" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 3 5 8l5 5"/>
+    </symbol>
+    <symbol id="i-forward" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 3l5 5-5 5"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 16 16"><path d="M4.4 2.6 13 8l-8.6 5.4z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 16 16"><path d="M4 2.8h2.9v10.4H4zM9.1 2.8H12v10.4H9.1z"/></symbol>
+    <symbol id="i-prev" viewBox="0 0 16 16"><path d="M4 3h1.8v10H4zM14 3v10L6.4 8z"/></symbol>
+    <symbol id="i-next" viewBox="0 0 16 16"><path d="M10.2 3H12v10h-1.8zM2 3l7.6 5L2 13z"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 3.2h3v3M11 12.8h3v-3M2 3.6h2.2c1 0 1.6.5 2.2 1.4l3 4.6c.6.9 1.2 1.4 2.2 1.4H14M2 12.4h2.2c1 0 1.6-.5 2.2-1.4l.6-.9M11.4 5.2l-.6.9c-.3.5-.6.8-1 1.1"/>
+    </symbol>
+    <symbol id="i-repeat" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.4 6.2V5.6A2.2 2.2 0 0 1 5.6 3.4h6M12.6 9.8v.6a2.2 2.2 0 0 1-2.2 2.2h-6"/>
+      <path d="M9.8 1.6 12 3.4l-2.2 1.8M6.2 10.8 4 12.6l2.2 1.8"/>
+    </symbol>
+    <symbol id="i-repeat-one" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.4 6.2V5.6A2.2 2.2 0 0 1 5.6 3.4h6M12.6 9.8v.6a2.2 2.2 0 0 1-2.2 2.2h-6"/>
+      <path d="M9.8 1.6 12 3.4l-2.2 1.8M6.2 10.8 4 12.6l2.2 1.8"/>
+      <path d="M7.6 6.6 8.4 6v3.4" stroke-width="1.7"/>
+    </symbol>
+    <symbol id="i-volume" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7.4 3.2 4.6 5.6H2.4v4.8h2.2l2.8 2.4z" fill="currentColor" stroke-linejoin="round"/>
+      <path d="M10.2 6a2.8 2.8 0 0 1 0 4M12.2 4a5.4 5.4 0 0 1 0 8"/>
+    </symbol>
+    <symbol id="i-mute" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7.4 3.2 4.6 5.6H2.4v4.8h2.2l2.8 2.4z" fill="currentColor" stroke-linejoin="round"/>
+      <path d="M10.4 6.4 13.6 9.6M13.6 6.4 10.4 9.6"/>
+    </symbol>
+    <symbol id="i-heart" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+      <path d="M8 13.2S2.2 9.9 2.2 6.2A2.9 2.9 0 0 1 8 4.7a2.9 2.9 0 0 1 5.8 1.5c0 3.7-5.8 7-5.8 7z"/>
+    </symbol>
+    <symbol id="i-clock" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <circle cx="8" cy="8" r="5.8"/><path d="M8 4.8V8l2.2 1.6"/>
+    </symbol>
+    <symbol id="i-list" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+      <path d="M2.4 4h11.2M2.4 8h11.2M2.4 12h7.4"/>
+    </symbol>
+    <symbol id="i-lyric" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2.2" y="2.6" width="11.6" height="10.8" rx="2"/>
+      <path d="M4.8 6h6.4M4.8 8.6h4.4"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="8" cy="8" r="2.1"/>
+      <path d="M12.9 9.8a1.1 1.1 0 0 0 .22 1.21l.04.04a1.34 1.34 0 1 1-1.9 1.9l-.04-.04a1.1 1.1 0 0 0-1.21-.22 1.1 1.1 0 0 0-.67 1v.11a1.34 1.34 0 1 1-2.68 0v-.06a1.1 1.1 0 0 0-.72-1 1.1 1.1 0 0 0-1.21.22l-.04.04a1.34 1.34 0 1 1-1.9-1.9l.04-.04a1.1 1.1 0 0 0 .22-1.21 1.1 1.1 0 0 0-1-.67h-.11a1.34 1.34 0 1 1 0-2.68h.06a1.1 1.1 0 0 0 1-.72 1.1 1.1 0 0 0-.22-1.21l-.04-.04a1.34 1.34 0 1 1 1.9-1.9l.04.04a1.1 1.1 0 0 0 1.21.22h.05a1.1 1.1 0 0 0 .67-1v-.11a1.34 1.34 0 1 1 2.68 0v.06a1.1 1.1 0 0 0 .67 1 1.1 1.1 0 0 0 1.21-.22l.04-.04a1.34 1.34 0 1 1 1.9 1.9l-.04.04a1.1 1.1 0 0 0-.22 1.21v.05a1.1 1.1 0 0 0 1 .67h.11a1.34 1.34 0 1 1 0 2.68h-.06a1.1 1.1 0 0 0-1 .67z"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+      <path d="M4 4l8 8M12 4l-8 8"/>
+    </symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.6 6l4.4 4.4L12.4 6"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <path d="M8 3.4v9.2M3.4 8h9.2"/>
+    </symbol>
+    <symbol id="i-inbox" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1.8 9.4h3.4l1 1.8h3.6l1-1.8h3.4"/>
+      <path d="M3.4 3h9.2l1.6 6.4v2.4a1.2 1.2 0 0 1-1.2 1.2H3a1.2 1.2 0 0 1-1.2-1.2V9.4z"/>
+    </symbol>
+    <symbol id="i-warn" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="8" cy="8" r="6.2"/><path d="M8 5v3.6M8 10.8h.01"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8 2.4v7.4M4.8 7 8 10.6 11.2 7M3 12.6h10"/>
+    </symbol>
+    <symbol id="i-import" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.4 3.6h11.2v8.8H2.4zM5 6.4h6M5 9h4"/>
+      <path d="M11.4 1.8h2.2v2.2M13.6 1.8 9.4 6"/>
+    </symbol>
+    <symbol id="i-speed" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.4 8a5.6 5.6 0 0 1 9.7-3.8M13.6 8a5.6 5.6 0 0 1-9.7 3.8"/>
+      <path d="M12.6 2.2v2.2h-2.2M3.4 13.8v-2.2h2.2"/>
+      <path d="M8 6.1l1.9 1.9L8 10" stroke-width="1.4"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- ===== 侧栏 ===== -->
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__mark"><svg><use href="#i-note"></use></svg></div>
+      <div class="sidebar__name">Music&nbsp;Hub</div>
+    </div>
+    <div class="sidebar__scroll">
+      <div class="nav-group">
+        <div class="nav-group__label">资料库</div>
+        <button class="nav-item is-active" data-view="search">
+          <svg><use href="#i-search"></use></svg><span>搜索</span>
+        </button>
+        <button class="nav-item" data-view="favorites">
+          <svg><use href="#i-heart"></use></svg><span>我喜欢</span>
+          <span class="nav-item__count" data-count="favorites">0</span>
+        </button>
+        <button class="nav-item" data-view="recent">
+          <svg><use href="#i-clock"></use></svg><span>最近播放</span>
+          <span class="nav-item__count" data-count="recent">0</span>
+        </button>
+        <button class="nav-item" data-view="queue">
+          <svg><use href="#i-list"></use></svg><span>播放队列</span>
+          <span class="nav-item__count" data-count="queue">0</span>
+        </button>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group__label">其他</div>
+        <button class="nav-item" data-view="settings">
+          <svg><use href="#i-settings"></use></svg><span>设置</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== 主区 ===== -->
+  <main class="main">
+    <div class="toolbar" id="toolbar">
+      <div class="toolbar__nav">
+        <button class="icon-btn" id="navBack" title="后退" disabled><svg><use href="#i-back"></use></svg></button>
+        <button class="icon-btn" id="navForward" title="前进" disabled><svg><use href="#i-forward"></use></svg></button>
+      </div>
+
+      <div class="search-field" id="searchField">
+        <svg class="search-field__icon"><use href="#i-search"></use></svg>
+        <input type="search" id="searchInput" placeholder="搜索歌曲、歌手或专辑" autocomplete="off" spellcheck="false">
+        <button class="search-field__clear" id="searchClear" title="清除"><svg><use href="#i-close"></use></svg></button>
+      </div>
+
+      <div class="toolbar__spacer"></div>
+
+      <!-- 歌单导入 -->
+      <button class="chip-btn" id="btnImport" title="导入歌单">
+        <svg><use href="#i-import"></use></svg><span>导入歌单</span>
+      </button>
+
+      <!-- 平台分段控件 -->
+      <div class="segmented" id="platformSeg" role="tablist" aria-label="音乐平台">
+        <div class="segmented__knob" id="segKnob"></div>
+        <button class="segmented__item is-active" role="tab" data-platform="all">全部</button>
+        <button class="segmented__item" role="tab" data-platform="netease">
+          <i class="segmented__dot segmented__dot--netease"></i>网易云<span class="segmented__count" data-seg-count="netease"></span>
+        </button>
+        <button class="segmented__item" role="tab" data-platform="tencent">
+          <i class="segmented__dot segmented__dot--tencent"></i>QQ音乐<span class="segmented__count" data-seg-count="tencent"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="content" id="content"></div>
+  </main>
+
+  <!-- ===== 播放条 ===== -->
+  <div class="playbar">
+    <div class="np">
+      <img class="np__cover" id="npCover" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+      <div class="np__text">
+        <div class="np__name" id="npName"><span class="np__empty">未在播放</span></div>
+        <div class="np__artist" id="npArtist"></div>
+      </div>
+      <button class="row-btn" id="npFav" style="opacity:1" title="喜欢"><svg><use href="#i-heart"></use></svg></button>
+    </div>
+
+    <div class="pc">
+      <div class="pc__buttons">
+        <button class="ctl" id="btnShuffle" title="随机播放"><svg><use href="#i-shuffle"></use></svg></button>
+        <button class="ctl" id="btnPrev" title="上一首" disabled><svg><use href="#i-prev"></use></svg></button>
+        <button class="ctl ctl--play" id="btnPlay" title="播放" disabled><svg><use href="#i-play"></use></svg></button>
+        <button class="ctl" id="btnNext" title="下一首" disabled><svg><use href="#i-next"></use></svg></button>
+        <button class="ctl" id="btnRepeat" title="循环模式"><svg><use href="#i-repeat"></use></svg></button>
+      </div>
+      <div class="pc__progress">
+        <span class="time" id="timeNow">0:00</span>
+        <div class="slider" id="seekBar">
+          <div class="slider__track">
+            <div class="slider__buffer" id="seekBuffer" style="width:0%"></div>
+            <div class="slider__fill" id="seekFill" style="width:0%"></div>
+            <div class="slider__knob" id="seekKnob" style="left:0%"></div>
+          </div>
+        </div>
+        <span class="time time--right" id="timeTotal">0:00</span>
+      </div>
+    </div>
+
+    <div class="pr">
+      <button class="quality-chip" id="qualityChip" title="音质">—</button>
+      <button class="ctl" id="btnSpeed" title="倍速"><svg><use href="#i-speed"></use></svg><span class="ctl__speed" id="speedLabel">1.0×</span></button>
+      <button class="ctl ctl--sleep" id="btnSleep" title="定时关闭"><svg><use href="#i-clock"></use></svg></button>
+      <button class="ctl" id="btnDownload" title="下载"><svg><use href="#i-download"></use></svg></button>
+      <button class="ctl" id="btnLyric" title="歌词"><svg><use href="#i-lyric"></use></svg></button>
+      <div class="volume">
+        <button class="ctl" id="btnMute" title="静音"><svg><use href="#i-volume"></use></svg></button>
+        <div class="slider" id="volBar">
+          <div class="slider__track">
+            <div class="slider__fill" id="volFill" style="width:80%"></div>
+            <div class="slider__knob" id="volKnob" style="left:80%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 沉浸式歌词页（Apple Music 全屏） ===== -->
+<div class="lyric-sheet" id="lyricSheet" aria-hidden="true">
+  <div class="lyric-sheet__bg" id="lyricBg"></div>
+  <div class="lyric-sheet__scrim"></div>
+
+  <div class="lyric-sheet__top">
+    <button class="icon-btn" id="lyricClose" title="收起"><svg><use href="#i-chevron-down"></use></svg></button>
+    <div class="lyric-sheet__head">
+      <div class="lyric-sheet__name" id="lyricName"></div>
+      <div class="lyric-sheet__artist" id="lyricArtist"></div>
+    </div>
+    <span class="quality-chip" id="lyricQuality" title="音质来源">—</span>
+  </div>
+
+  <div class="lyric-sheet__body">
+    <div class="lyric-art">
+      <img class="lyric-art__cover" id="lyricCover" alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+      <div class="lyric-art__name" id="lyricName2"></div>
+      <div class="lyric-art__artist" id="lyricArtist2"></div>
+    </div>
+    <div class="lyric-scroll" id="lyricScroll"></div>
+  </div>
+
+  <div class="lyric-sheet__transport">
+    <div class="lyric-sheet__progress">
+      <span class="time" id="lyricTimeNow">0:00</span>
+      <div class="slider" id="lyricSeek">
+        <div class="slider__track">
+          <div class="slider__buffer" id="lyricSeekBuffer" style="width:0%"></div>
+          <div class="slider__fill" id="lyricSeekFill" style="width:0%"></div>
+          <div class="slider__knob" id="lyricSeekKnob" style="left:0%"></div>
+        </div>
+      </div>
+      <span class="time time--right" id="lyricTimeTotal">0:00</span>
+    </div>
+    <div class="lyric-sheet__buttons">
+      <button class="ctl" id="lyricShuffle" title="随机"><svg><use href="#i-shuffle"></use></svg></button>
+      <button class="ctl" id="lyricPrev" title="上一首"><svg><use href="#i-prev"></use></svg></button>
+      <button class="ctl ctl--play" id="lyricPlay" title="播放/暂停"><svg><use href="#i-play"></use></svg></button>
+      <button class="ctl" id="lyricNext" title="下一首"><svg><use href="#i-next"></use></svg></button>
+      <button class="ctl" id="lyricFav" title="喜欢"><svg><use href="#i-heart"></use></svg></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 歌单导入弹窗 ===== -->
+<div class="modal" id="importModal" aria-hidden="true">
+  <div class="modal__scrim" id="importScrim"></div>
+  <div class="modal__card">
+    <div class="modal__head">
+      <div class="modal__title">导入歌单</div>
+      <button class="icon-btn" id="importClose" title="关闭"><svg><use href="#i-close"></use></svg></button>
+    </div>
+    <div class="modal__desc">粘贴网易云或 QQ 音乐的歌单分享链接（或纯数字歌单 ID），导入后会直接作为播放队列加载。</div>
+    <textarea class="modal__input" id="importInput" placeholder="例如：https://music.163.com/#/playlist?id=123456 或 123456"></textarea>
+    <div class="modal__err" id="importErr"></div>
+    <div class="modal__foot">
+      <button class="btn" id="importCancel">取消</button>
+      <button class="btn btn--accent" id="importOk">导入并播放</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 定时关闭弹窗 ===== -->
+<div class="modal" id="sleepModal" aria-hidden="true">
+  <div class="modal__scrim" id="sleepScrim"></div>
+  <div class="modal__card modal__card--menu">
+    <div class="modal__title" style="padding:14px 16px 6px">定时关闭</div>
+    <div class="menu" id="sleepMenu">
+      <button class="menu__item" data-min="15">15 分钟后</button>
+      <button class="menu__item" data-min="30">30 分钟后</button>
+      <button class="menu__item" data-min="45">45 分钟后</button>
+      <button class="menu__item" data-min="60">60 分钟后</button>
+      <button class="menu__item" data-min="90">90 分钟后</button>
+      <button class="menu__item" data-min="end">播完当前歌曲</button>
+      <button class="menu__item menu__item--danger" data-min="off">关闭定时</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+<audio id="audio" preload="metadata" crossorigin="anonymous"></audio>
+<audio id="audioB" preload="none" crossorigin="anonymous"></audio>
+
+<script src="js/store.js"></script>
+<script src="js/sources.js"></script>
+<script src="js/sources.config.js"></script>
+<script src="js/player.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
