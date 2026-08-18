@@ -567,6 +567,12 @@
     emit('mode', state);
     try { Store.saveSettings({ shuffle: state.shuffle }); } catch (e) {}
   }
+  function setShuffle(v) {
+    state.shuffle = !!v;
+    shuffleBag = [];
+    emit('mode', state);
+    try { Store.saveSettings({ shuffle: state.shuffle }); } catch (e) {}
+  }
 
   var SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
   function setSpeed(s) {
@@ -774,6 +780,7 @@
     setRepeat: setRepeat,
     cycleRepeat: cycleRepeat,
     toggleShuffle: toggleShuffle,
+    setShuffle: setShuffle,
 
     SPEEDS: SPEEDS,
     setSpeed: setSpeed,
