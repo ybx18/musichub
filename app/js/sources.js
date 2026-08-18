@@ -18,11 +18,8 @@
    * 0. 常量与配置
    * ========================================================== */
 
-  var GD = 'https://music-api.gdstudio.xyz/api.php';
-  var METING = 'https://api.qijieya.cn/meting/';
-  var VKEYS = 'https://api.vkeys.cn/v2/music';
-  var QQ_JSONP = 'https://c.y.qq.com';
-  var PAUGRAM = 'https://api.paugram.com/netease/';
+  // 注意：本仓库不内置任何上游音源域名。所有音源地址都由使用者在
+  // sources.config.js 中通过 Sources.registerProvider(...) 自行提供。
 
   var TIER = { LOSSLESS: 0, HIGH: 1, PREVIEW: 2 };
 
@@ -536,395 +533,24 @@
    * 8. PROVIDERS —— 音源注册表
    * ========================================================== */
 
+  // 默认 0 音源：本仓库不内置任何音频源（网易云 / QQ / JOOX / 酷我 等）。
+  // 所有可用音源都必须由使用者在 sources.config.js 中通过
+  //   Sources.registerProvider({ ... }) 自行注册，或直接在设置面板填写「自定义源」模板。
+  // 这里仅保留一个完全由用户驱动的占位适配器 custom（不指向任何具体服务）。
   var PROVIDERS = {
 
-    /* ---------- GDStudio · JOOX（唯一稳定无损） ---------- */
-    'gd-joox': {
-      id: 'gd-joox',
-      label: 'JOOX',
-      note: '无损 FLAC 主力',
-      tier: TIER.LOSSLESS,
-      weight: 100,
-      caps: { search: 1, url: 1, lyric: 1, pic: 1 },
-      search: function (kw, page, limit) {
-        var u = GD + '?types=search&source=joox&name=' + enc(kw) +
-                '&count=' + (limit || 30) + '&pages=' + (page || 1);
-        return http(u, { timeout: 10000 }).then(function (list) {
-          return toArr(list).map(function (x) {
-            return mkTrack({
-              platform: 'joox', id: x.id, name: x.name, artist: x.artist,
-              album: x.album, picId: x.pic_id, lyricId: x.lyric_id,
-              urlId: x.url_id, source: 'joox', raw: x
-            });
-          });
-        });
-      },
-      url: function (track, br) {
-        var u = GD + '?types=url&source=joox&id=' + enc(track.urlId || track.id) +
-                '&br=' + (br || 999);
-        return http(u, { timeout: 12000 }).then(function (r) {
-          if (!r || !r.url) throw new Error('joox empty');
-          return { url: r.url, br: Number(r.br) || 0, size: Number(r.size) || 0 };
-        });
-      },
-      lyric: function (track) {
-        var u = GD + '?types=lyric&source=joox&id=' + enc(track.lyricId || track.id);
-        return http(u, { timeout: 9000 }).then(function (r) {
-          if (!r || !r.lyric) throw new Error('no lyric');
-          return { lyric: r.lyric, tlyric: r.tlyric || '' };
-        });
-      },
-      pic: function (track, size) {
-        if (!track.picId) throw new Error('no picId');
-        return GD + '?types=pic&source=joox&id=' + enc(track.picId) + '&size=' + (size || 300);
-      }
-    },
-
-    /* ---------- GDStudio · 酷我（元数据/歌词/封面备份） ---------- */
-    'gd-kuwo': {
-      id: 'gd-kuwo',
-      label: '酷我',
-      note: '元数据与歌词备份',
-      tier: TIER.HIGH,
-      weight: 62,
-      caps: { search: 1, url: 1, lyric: 1, pic: 1 },
-      search: function (kw, page, limit) {
-        var u = GD + '?types=search&source=kuwo&name=' + enc(kw) +
-                '&count=' + (limit || 30) + '&pages=' + (page || 1);
-        return http(u, { timeout: 10000 }).then(function (list) {
-          return toArr(list).map(function (x) {
-            return mkTrack({
-              platform: 'kuwo', id: x.id, name: x.name, artist: x.artist,
-              album: x.album, picId: x.pic_id, lyricId: x.lyric_id,
-              urlId: x.url_id, source: 'kuwo', raw: x
-            });
-          });
-        });
-      },
-      url: function (track, br) {
-        var u = GD + '?types=url&source=kuwo&id=' + enc(track.urlId || track.id) + '&br=' + (br || 999);
-        return http(u, { timeout: 11000 }).then(function (r) {
-          if (!r || !r.url) throw new Error('kuwo empty');
-          return { url: r.url, br: Number(r.br) || 0, size: Number(r.size) || 0 };
-        });
-      },
-      lyric: function (track) {
-        var u = GD + '?types=lyric&source=kuwo&id=' + enc(track.lyricId || track.id);
-        return http(u, { timeout: 9000 }).then(function (r) {
-          if (!r || !r.lyric) throw new Error('no lyric');
-          return { lyric: r.lyric, tlyric: r.tlyric || '' };
-        });
-      },
-      pic: function (track, size) {
-        if (!track.picId) throw new Error('no picId');
-        return GD + '?types=pic&source=kuwo&id=' + enc(track.picId) + '&size=' + (size || 300);
-      }
-    },
-
-    /* ---------- GDStudio · 网易 ---------- */
-    'gd-netease': {
-      id: 'gd-netease',
-      label: 'GD·网易',
-      note: '直链常年受限，保留降级位',
-      tier: TIER.HIGH,
-      weight: 40,
-      caps: { search: 1, url: 1, lyric: 1, pic: 1 },
-      search: function (kw, page, limit) {
-        var u = GD + '?types=search&source=netease&name=' + enc(kw) +
-                '&count=' + (limit || 30) + '&pages=' + (page || 1);
-        return http(u, { timeout: 9000 }).then(function (list) {
-          var arr = toArr(list);
-          if (!arr.length) throw new Error('empty');
-          return arr.map(function (x) {
-            return mkTrack({
-              platform: 'netease', id: x.id, name: x.name, artist: x.artist,
-              album: x.album, picId: x.pic_id, lyricId: x.lyric_id,
-              urlId: x.url_id, source: 'gd-netease', raw: x
-            });
-          });
-        });
-      },
-      url: function (track, br) {
-        var u = GD + '?types=url&source=netease&id=' + enc(track.urlId || track.id) + '&br=' + (br || 999);
-        return http(u, { timeout: 9000 }).then(function (r) {
-          if (!r || !r.url) throw new Error('gd-netease empty');
-          return { url: r.url, br: Number(r.br) || 0, size: Number(r.size) || 0 };
-        });
-      },
-      lyric: function (track) {
-        var u = GD + '?types=lyric&source=netease&id=' + enc(track.lyricId || track.id);
-        return http(u, { timeout: 8000 }).then(function (r) {
-          if (!r || !r.lyric) throw new Error('no lyric');
-          return { lyric: r.lyric, tlyric: r.tlyric || '' };
-        });
-      },
-      pic: function (track, size) {
-        if (!track.picId) throw new Error('no picId');
-        return GD + '?types=pic&source=netease&id=' + enc(track.picId) + '&size=' + (size || 300);
-      }
-    },
-
-    /* ---------- Meting（网易 / QQ 元数据主力） ---------- */
-    'meting': {
-      id: 'meting',
-      label: 'Meting',
-      note: '网易/QQ 元数据与歌单',
-      tier: TIER.HIGH,
-      weight: 70,
-      caps: { search: 1, url: 1, lyric: 1, pic: 1, playlist: 1 },
-      server: function (platform) {
-        return platform === 'tencent' ? 'tencent' : 'netease';
-      },
-      search: function (kw, page, limit, platform) {
-        var srv = this.server(platform);
-        var u = METING + '?server=' + srv + '&type=search&id=' + enc(kw);
-        return http(u, { timeout: 10000 }).then(function (list) {
-          var arr = toArr(list);
-          if (!arr.length) throw new Error('empty');
-          return arr.map(function (x) {
-            // Meting 只回 url/pic/lrc 三个代理地址，从中抠出 id
-            var m = /[?&]id=([^&]+)/.exec(x.url || '');
-            var pm = /[?&]id=([^&]+)/.exec(x.pic || '');
-            var id = m ? decodeURIComponent(m[1]) : ('m' + (uidSeq++));
-            return mkTrack({
-              platform: srv === 'tencent' ? 'tencent' : 'netease',
-              id: id, name: x.name, artist: x.artist, album: '',
-              picId: pm ? decodeURIComponent(pm[1]) : '',
-              lyricId: id, urlId: id,
-              source: 'meting',
-              pic: x.pic || '',
-              raw: x
-            });
-          });
-        });
-      },
-      url: function (track) {
-        var srv = track.platform === 'tencent' ? 'tencent' : 'netease';
-        var u = METING + '?server=' + srv + '&type=url&id=' + enc(track.urlId || track.id);
-        // Meting url 是 302 代理，直接探测能否解码
-        return probeAudio(u, 6000).then(function (r) {
-          if (!r.ok) throw new Error('meting url dead');
-          return { url: u, br: 0, size: 0, duration: r.duration };
-        });
-      },
-      lyric: function (track) {
-        var srv = track.platform === 'tencent' ? 'tencent' : 'netease';
-        var u = METING + '?server=' + srv + '&type=lrc&id=' + enc(track.lyricId || track.id);
-        return http(u, { timeout: 9000, text: true }).then(function (txt) {
-          if (!txt || txt.length < 8) throw new Error('no lyric');
-          return { lyric: txt, tlyric: '' };
-        });
-      },
-      pic: function (track) {
-        if (track.pic) return track.pic;
-        var srv = track.platform === 'tencent' ? 'tencent' : 'netease';
-        return METING + '?server=' + srv + '&type=pic&id=' + enc(track.picId || track.id);
-      },
-      playlist: function (server, id) {
-        var u = METING + '?server=' + (server || 'netease') + '&type=playlist&id=' + enc(id);
-        return http(u, { timeout: 15000 }).then(function (list) {
-          var arr = toArr(list);
-          if (!arr.length) throw new Error('empty playlist');
-          return arr.map(function (x) {
-            var m = /[?&]id=([^&]+)/.exec(x.url || '');
-            var pm = /[?&]id=([^&]+)/.exec(x.pic || '');
-            var sid = m ? decodeURIComponent(m[1]) : ('p' + (uidSeq++));
-            return mkTrack({
-              platform: server === 'tencent' ? 'tencent' : 'netease',
-              id: sid, name: x.name, artist: x.artist,
-              picId: pm ? decodeURIComponent(pm[1]) : '',
-              lyricId: sid, urlId: sid, source: 'meting', pic: x.pic || '', raw: x
-            });
-          });
-        });
-      }
-    },
-
-    /* ---------- QQ 官方 JSONP（QQ 元数据最准，含时长） ---------- */
-    'qq-official': {
-      id: 'qq-official',
-      label: 'QQ官方',
-      note: 'QQ 元数据 / 排行榜',
-      tier: TIER.HIGH,
-      weight: 88,
-      caps: { search: 1, pic: 1, toplist: 1 },
-      search: function (kw, page, limit) {
-        var u = QQ_JSONP + '/soso/fcgi-bin/client_search_cp?p=' + (page || 1) +
-                '&n=' + (limit || 30) + '&w=' + enc(kw) + '&cr=1&new_json=1';
-        return jsonp(u, { cbParam: 'jsonpCallback', timeout: 9000 }).then(function (r) {
-          var list = r && r.data && r.data.song && r.data.song.list;
-          if (!list || !list.length) throw new Error('qq empty');
-          return list.map(function (x) {
-            var singer = (x.singer || []).map(function (s) { return s.name; }).join(' / ');
-            return mkTrack({
-              platform: 'tencent',
-              id: x.mid || x.songmid || x.id,
-              name: x.title || x.songname,
-              artist: singer,
-              album: (x.album && x.album.name) || x.albumname || '',
-              duration: Number(x.interval) || 0,
-              picId: (x.album && x.album.mid) || x.albummid || '',
-              lyricId: x.mid || x.songmid,
-              urlId: x.mid || x.songmid,
-              source: 'qq-official',
-              raw: x
-            });
-          });
-        });
-      },
-      pic: function (track, size) {
-        if (!track.picId) throw new Error('no albummid');
-        var s = size >= 500 ? 500 : (size >= 300 ? 300 : 150);
-        return 'https://y.qq.com/music/photo_new/T002R' + s + 'x' + s + 'M000' + track.picId + '.jpg';
-      },
-      toplist: function (topid) {
-        var u = QQ_JSONP + '/v8/fcg-bin/fcg_v8_toplist_cp.fcg?topid=' + (topid || 4) +
-                '&page=detail&type=top&tpl=3&platform=js';
-        return jsonp(u, { cbParam: 'jsonpCallback', timeout: 10000 }).then(function (r) {
-          var list = (r && r.songlist) || [];
-          if (!list.length) throw new Error('toplist empty');
-          return list.map(function (it) {
-            var x = it.data || it;
-            var singer = (x.singer || []).map(function (s) { return s.name; }).join(' / ');
-            return mkTrack({
-              platform: 'tencent', id: x.songmid || x.songid,
-              name: x.songname, artist: singer, album: x.albumname,
-              duration: Number(x.interval) || 0,
-              picId: x.albummid || '', lyricId: x.songmid, urlId: x.songmid,
-              source: 'qq-official', raw: x
-            });
-          });
-        });
-      }
-    },
-
-    /* ---------- vkeys · QQ（唯一还能出声的 QQ 直链，仅试听码率） ---------- */
-    'vkeys-qq': {
-      id: 'vkeys-qq',
-      label: 'vkeys·QQ',
-      note: '兜底试听（版权限制约 28K）',
-      tier: TIER.PREVIEW,
-      weight: 30,
-      caps: { search: 1, url: 1, lyric: 1 },
-      search: function (kw, page, limit) {
-        var u = VKEYS + '/tencent?word=' + enc(kw) + '&page=' + (page || 1) + '&num=' + (limit || 30);
-        return http(u, { timeout: 11000 }).then(function (r) {
-          var list = (r && r.data) || [];
-          if (!list.length) throw new Error('vkeys empty');
-          return list.map(function (x) {
-            return mkTrack({
-              platform: 'tencent', id: x.mid || x.id,
-              name: x.song, artist: x.singer,
-              album: x.album, duration: parseDur(x.time || x.interval),
-              picId: x.cover ? '' : '', pic: x.cover || '',
-              lyricId: x.mid, urlId: String(x.id || x.mid),
-              source: 'vkeys-qq', raw: x
-            });
-          });
-        });
-      },
-      url: function (track, br) {
-        var q = br >= 700 ? 11 : (br >= 320 ? 8 : 4);
-        var word = track.name + ' ' + track.artist;
-        var u = VKEYS + '/tencent?word=' + enc(word) + '&n=1&q=' + q;
-        return http(u, { timeout: 12000 }).then(function (r) {
-          var d = r && r.data;
-          if (!d || !d.url) throw new Error('vkeys no url');
-          return {
-            url: d.url,
-            br: Number(d.kbps) || 0,
-            size: parseSize(d.size),
-            meta: { name: d.song, artist: d.singer, album: d.album, duration: parseDur(d.time) }
-          };
-        });
-      },
-      lyric: function (track) {
-        var u = VKEYS + '/tencent/lyric?mid=' + enc(track.lyricId || track.id);
-        return http(u, { timeout: 9000 }).then(function (r) {
-          var d = r && r.data;
-          if (!d || !d.lrc) throw new Error('no lyric');
-          return { lyric: d.lrc, tlyric: d.trans || '' };
-        });
-      }
-    },
-
-    /* ---------- vkeys · 网易 ---------- */
-    'vkeys-netease': {
-      id: 'vkeys-netease',
-      label: 'vkeys·网易',
-      note: '元数据与歌词备份',
-      tier: TIER.PREVIEW,
-      weight: 24,
-      caps: { search: 1, url: 1, lyric: 1 },
-      search: function (kw, page, limit) {
-        var u = VKEYS + '/netease?word=' + enc(kw) + '&page=' + (page || 1) + '&num=' + (limit || 30);
-        return http(u, { timeout: 11000 }).then(function (r) {
-          var list = (r && r.data) || [];
-          if (!list.length) throw new Error('empty');
-          return list.map(function (x) {
-            return mkTrack({
-              platform: 'netease', id: x.id,
-              name: x.song, artist: x.singer, album: x.album,
-              duration: parseDur(x.time), pic: x.cover || '',
-              lyricId: x.id, urlId: x.id, source: 'vkeys-netease', raw: x
-            });
-          });
-        });
-      },
-      url: function (track, br) {
-        var q = br >= 700 ? 9 : 6;
-        var u = VKEYS + '/netease?word=' + enc(track.name + ' ' + track.artist) + '&n=1&q=' + q;
-        return http(u, { timeout: 11000 }).then(function (r) {
-          var d = r && r.data;
-          if (!d || !d.url) throw new Error('no url');
-          return { url: d.url, br: Number(d.kbps) || 0, size: parseSize(d.size) };
-        });
-      },
-      lyric: function (track) {
-        var u = VKEYS + '/netease/lyric?id=' + enc(track.lyricId || track.id);
-        return http(u, { timeout: 9000 }).then(function (r) {
-          var d = r && r.data;
-          if (!d || !d.lrc) throw new Error('no lyric');
-          return { lyric: d.lrc, tlyric: d.trans || '' };
-        });
-      }
-    },
-
-    /* ---------- paugram（网易歌词 + 官方翻译） ---------- */
-    'paugram': {
-      id: 'paugram',
-      label: 'paugram',
-      note: '网易歌词与翻译',
-      tier: TIER.HIGH,
-      weight: 55,
-      caps: { lyric: 1, pic: 1 },
-      lyric: function (track) {
-        if (track.platform !== 'netease' || !/^\d+$/.test(String(track.lyricId || track.id))) {
-          throw new Error('paugram needs netease numeric id');
-        }
-        var u = PAUGRAM + '?id=' + enc(track.lyricId || track.id);
-        return http(u, { timeout: 9000 }).then(function (r) {
-          if (!r || !r.lyric) throw new Error('no lyric');
-          return { lyric: r.lyric, tlyric: r.sub_lyric || '' };
-        });
-      },
-      pic: function (track) {
-        if (track.platform !== 'netease') throw new Error('n/a');
-        return null; // 交给 meting
-      }
-    },
-
-    /* ---------- 自定义源（LX Music 风格占位符） ---------- */
+    /* ---------- 自定义源（LX Music 风格占位符，需用户自行填写） ---------- */
     'custom': {
       id: 'custom',
       label: '自定义源',
-      note: '设置里可填自己的接口',
+      note: '设置里可填自己的接口，仓库不内置任何源',
       tier: TIER.HIGH,
       weight: 50,
       caps: { search: 1, url: 1 },
       search: function (kw, page, limit) {
-        if (!settings.customSearch) throw new Error('未配置');
-        var u = settings.customSearch
+        var cs = settings.customSearch || (settings.customSource && settings.customSource.searchUrl);
+        if (!cs) throw new Error('未配置自定义搜索地址');
+        var u = cs
           .replace(/\{keyword\}/g, enc(kw))
           .replace(/\{page\}/g, page || 1)
           .replace(/\{limit\}/g, limit || 30);
@@ -944,8 +570,9 @@
         });
       },
       url: function (track, br) {
-        if (!settings.customUrl) throw new Error('未配置');
-        var u = settings.customUrl
+        var cu = settings.customUrl || (settings.customSource && settings.customSource.urlUrl);
+        if (!cu) throw new Error('未配置自定义播放地址');
+        var u = cu
           .replace(/\{id\}/g, enc(track.urlId || track.id))
           .replace(/\{name\}/g, enc(track.name))
           .replace(/\{artist\}/g, enc(track.artist))
@@ -1115,20 +742,14 @@
    * ========================================================== */
 
   /** 平台 → 该平台的搜索源顺序 */
+  // 动态推导：返回所有声明了 search 能力的 provider，按 weight 降序。
+  // 纯前端无内置源，platform 参数仅作提示，不再写死到具体服务。
   function searchPlan(platform) {
-    if (platform === 'tencent') {
-      return ['qq-official', 'meting', 'vkeys-qq'];
-    }
-    if (platform === 'netease') {
-      return ['meting', 'vkeys-netease', 'gd-netease'];
-    }
-    if (platform === 'joox') {
-      return ['gd-joox'];
-    }
-    if (platform === 'kuwo') {
-      return ['gd-kuwo'];
-    }
-    return ['meting', 'qq-official'];  // all
+    var ids = Object.keys(PROVIDERS).filter(function (k) {
+      return PROVIDERS[k].caps && PROVIDERS[k].caps.search;
+    });
+    ids.sort(function (a, b) { return (PROVIDERS[b].weight || 0) - (PROVIDERS[a].weight || 0); });
+    return ids;
   }
 
   function dedupe(list) {
@@ -1153,7 +774,37 @@
       for (var k in patch) {
         if (Object.prototype.hasOwnProperty.call(patch, k)) settings[k] = patch[k];
       }
+      // 兼容设置面板「自定义源」输入框：customSource.{searchUrl,urlUrl}
+      // 统一映射到 settings.customSearch / settings.customUrl
+      if (patch.customSource) {
+        if (patch.customSource.searchUrl) settings.customSearch = patch.customSource.searchUrl;
+        if (patch.customSource.urlUrl) settings.customUrl = patch.customSource.urlUrl;
+      }
       return settings;
+    },
+
+    /** 注册单个自定义音源。def 需包含 id / label / tier / weight / caps 及对应方法。
+     *  caps 支持：search / url / lyric / pic / playlist / toplist / lossless
+     *  例：Sources.registerProvider({ id:'my-joox', label:'我的JOOX', tier:TIER.LOSSLESS,
+     *        weight:100, caps:{search:1,url:1,lossless:1,lyric:1},
+     *        search:function(kw){...}, url:function(t,br){...}, lyric:function(t){...} }); */
+    registerProvider: function (def) {
+      if (!def || !def.id) throw new Error('provider 必须包含 id');
+      if (!def.caps) def.caps = {};
+      PROVIDERS[def.id] = def;
+      health[def.id] = { ok: 0, fail: 0, lastMs: 0, lastErr: '', lastAt: 0 };
+      return Sources;
+    },
+
+    /** 批量注册 */
+    registerProviders: function (arr) {
+      (arr || []).forEach(function (d) { Sources.registerProvider(d); });
+      return Sources;
+    },
+
+    /** 列出当前已注册（含内置 custom）的所有音源定义 */
+    listProviders: function () {
+      return Object.keys(PROVIDERS).map(function (k) { return PROVIDERS[k]; });
     },
 
     /* ---------- 搜索 ---------- */
@@ -1170,16 +821,16 @@
       var plan = searchPlan(platform);
 
       if (platform === 'all') {
-        // 网易 + QQ 双路并发，交叉合并
-        return Promise.all([
-          this.search('netease', keyword, page, Math.ceil(limit / 2)).catch(function () { return []; }),
-          this.search('tencent', keyword, page, Math.ceil(limit / 2)).catch(function () { return []; })
-        ]).then(function (rs) {
-          var a = rs[0], b = rs[1], out = [];
-          for (var i = 0; i < Math.max(a.length, b.length); i++) {
-            if (a[i]) out.push(a[i]);
-            if (b[i]) out.push(b[i]);
-          }
+        // 并发跑所有 search-capable provider，交叉合并去重
+        var ids = searchPlan('all');
+        if (!ids.length) return Promise.resolve([]);
+        return Promise.all(ids.map(function (pid) {
+          var P = PROVIDERS[pid];
+          return track(pid, Promise.resolve(P.search(keyword, page, limit, 'all')))
+            .then(function (list) { return list || []; }, function () { return []; });
+        })).then(function (rs) {
+          var out = [];
+          rs.forEach(function (arr) { (arr || []).forEach(function (t) { out.push(t); }); });
           out = dedupe(out);
           cacheSet(ck, out, 5 * 60 * 1000);
           return out;
@@ -1220,13 +871,11 @@
 
       var tasks = [];
 
-      /* --- A. 本源直取 --- */
+      /* --- A. 本源直取（动态：取该 track 来源 provider 的 url 能力，custom 作兜底） --- */
       var nativePlan = [];
-      if (trackObj.platform === 'joox') nativePlan = ['gd-joox'];
-      else if (trackObj.platform === 'kuwo') nativePlan = ['gd-kuwo'];
-      else if (trackObj.platform === 'tencent') nativePlan = ['meting', 'vkeys-qq'];
-      else nativePlan = ['meting', 'gd-netease', 'vkeys-netease'];
-      if (settings.customUrl) nativePlan.unshift('custom');
+      var sp = PROVIDERS[trackObj.source];
+      if (sp && sp.caps && sp.caps.url) nativePlan.push(sp.id);
+      if (settings.customUrl && (!sp || sp.id !== 'custom')) nativePlan.unshift('custom');
 
       nativePlan.forEach(function (pid) {
         var P = PROVIDERS[pid];
@@ -1252,73 +901,35 @@
         });
       });
 
-      /* --- B. 跨源取无损（JOOX） --- */
-      if (settings.crossMatch && wantLossless && trackObj.platform !== 'joox') {
-        tasks.push({
-          provider: 'gd-joox',
-          tier: TIER.LOSSLESS,
-          weight: PROVIDERS['gd-joox'].weight,
-          run: function () {
-            return crossMatch(trackObj, 'gd-joox').then(function (m) {
-              return track('gd-joox', PROVIDERS['gd-joox'].url(m.track, br)).then(function (r) {
-                if (!r || !r.url) return null;
-                return {
-                  url: r.url, br: r.br || 0, size: r.size || 0,
-                  via: 'gd-joox', viaLabel: 'JOOX',
-                  matched: { track: m.track, score: Math.round(m.score) },
-                  duration: m.track.duration || trackObj.duration
-                };
-              });
-            });
-          }
+      /* --- 跨源取无损：若开启 crossMatch，用声明 lossless 能力的最优 provider 试匹配 --- */
+      if (settings.crossMatch && wantLossless) {
+        var best = null;
+        Object.keys(PROVIDERS).forEach(function (k) {
+          var P = PROVIDERS[k];
+          if (P.id === trackObj.source) return;
+          if (!(P.caps && P.caps.url && P.caps.lossless && P.caps.search)) return;
+          if (!best || (P.weight || 0) > (best.weight || 0)) best = P;
         });
-      }
-
-      /* --- C. 跨源到酷我（无损失败时的高码率备份） --- */
-      if (settings.crossMatch && trackObj.platform !== 'kuwo') {
-        tasks.push({
-          provider: 'gd-kuwo',
-          tier: TIER.HIGH,
-          weight: PROVIDERS['gd-kuwo'].weight - 10,
-          run: function () {
-            return crossMatch(trackObj, 'gd-kuwo').then(function (m) {
-              return track('gd-kuwo', PROVIDERS['gd-kuwo'].url(m.track, br)).then(function (r) {
-                if (!r || !r.url) return null;
-                return {
-                  url: r.url, br: r.br || 0, size: r.size || 0,
-                  via: 'gd-kuwo', viaLabel: '酷我',
-                  matched: { track: m.track, score: Math.round(m.score) },
-                  duration: m.track.duration || trackObj.duration
-                };
-              });
-            });
-          }
-        });
-      }
-
-      /* --- D. 最后兜底：vkeys 试听 --- */
-      if (trackObj.platform !== 'tencent') {
-        tasks.push({
-          provider: 'vkeys-qq',
-          tier: TIER.PREVIEW,
-          weight: 20,
-          run: function () {
-            return track('vkeys-qq', PROVIDERS['vkeys-qq'].url(trackObj, br)).then(function (r) {
-              if (!r || !r.url) return null;
-              // 兜底源必须校验是不是同一首歌
-              if (r.meta) {
-                var s = scoreMatchV2(trackObj, r.meta);
-                if (s < MATCH_ACCEPT) return null;
-              }
-              return {
-                url: r.url, br: r.br || 0, size: r.size || 0,
-                via: 'vkeys-qq', viaLabel: 'vkeys·QQ',
-                matched: r.meta ? { track: r.meta, score: 0 } : null,
-                duration: (r.meta && r.meta.duration) || trackObj.duration
-              };
-            });
-          }
-        });
+        if (best) {
+          tasks.push({
+            provider: best.id,
+            tier: best.tier,
+            weight: (best.weight || 0) - 5,
+            run: function () {
+              return crossMatch(trackObj, best.id).then(function (m) {
+                return track(best.id, best.url(m.track, br)).then(function (r) {
+                  if (!r || !r.url) return null;
+                  return {
+                    url: r.url, br: r.br || 0, size: r.size || 0,
+                    via: best.id, viaLabel: best.label,
+                    matched: { track: m.track, score: Math.round(m.score) },
+                    duration: m.track.duration || trackObj.duration
+                  };
+                }, function () { return null; });
+              }, function () { return null; });
+            }
+          });
+        }
       }
 
       return raceWeighted(tasks, { grace: opt.grace, timeout: opt.timeout })
@@ -1347,11 +958,10 @@
       var hit = cacheGet(ck);
       if (hit) return Promise.resolve(hit);
 
-      var plan;
-      if (trackObj.platform === 'netease') plan = ['paugram', 'meting', 'vkeys-netease', 'gd-netease'];
-      else if (trackObj.platform === 'tencent') plan = ['meting', 'vkeys-qq', 'gd-kuwo'];
-      else if (trackObj.platform === 'joox') plan = ['gd-joox'];
-      else plan = ['gd-kuwo', 'meting'];
+      // 动态推导：所有声明 lyric 能力的 provider
+      var plan = Object.keys(PROVIDERS).filter(function (k) {
+        return PROVIDERS[k].caps && PROVIDERS[k].caps.lyric;
+      });
 
       var idx = 0;
       function next() {
@@ -1380,12 +990,17 @@
       var self = this;
       return this.lyric(trackObj).then(function (r) {
         if (r && r.lyric) return r;
-        return crossMatch(trackObj, 'gd-kuwo')
-          .then(function (m) { return self.lyric(m.track); })
-          .catch(function () {
-            return crossMatch(trackObj, 'gd-joox').then(function (m) { return self.lyric(m.track); });
-          })
-          .catch(function () { return { lyric: '', tlyric: '' }; });
+        var losslessIds = Object.keys(PROVIDERS).filter(function (k) {
+          var P = PROVIDERS[k];
+          return P.caps && P.caps.search && P.caps.lyric && P.caps.lossless;
+        });
+        var chain = Promise.reject(new Error('no cross source'));
+        losslessIds.forEach(function (pid) {
+          chain = chain.catch(function () {
+            return crossMatch(trackObj, pid).then(function (m) { return self.lyric(m.track); });
+          });
+        });
+        return chain.catch(function () { return { lyric: '', tlyric: '' }; });
       });
     },
 
@@ -1405,11 +1020,10 @@
         }
       }
 
-      var plan;
-      if (trackObj.platform === 'tencent') plan = ['qq-official', 'meting'];
-      else if (trackObj.platform === 'joox') plan = ['gd-joox'];
-      else if (trackObj.platform === 'kuwo') plan = ['gd-kuwo'];
-      else plan = ['meting', 'gd-netease'];
+      // 动态推导：所有声明 pic 能力的 provider
+      var plan = Object.keys(PROVIDERS).filter(function (k) {
+        return PROVIDERS[k].caps && PROVIDERS[k].caps.pic;
+      });
 
       for (var i = 0; i < plan.length; i++) {
         var P = PROVIDERS[plan[i]];
@@ -1424,7 +1038,11 @@
 
     /* ---------- 歌单导入 ---------- */
     playlist: function (server, id) {
-      return track('meting', PROVIDERS['meting'].playlist(server, id));
+      var ids = Object.keys(PROVIDERS).filter(function (k) {
+        return PROVIDERS[k].caps && PROVIDERS[k].caps.playlist;
+      });
+      if (!ids.length) return Promise.reject(new Error('未配置歌单音源：请在 sources.config.js 注册支持 playlist 的 provider'));
+      return track(ids[0], PROVIDERS[ids[0]].playlist(server, id));
     },
 
     /** 从各种分享链接里抠出 歌单 id */
@@ -1449,12 +1067,11 @@
 
     /* ---------- 排行榜 ---------- */
     toplist: function (platform, id) {
-      if (platform === 'tencent') {
-        return track('qq-official', PROVIDERS['qq-official'].toplist(id || 4));
-      }
-      // 网易官方榜歌单 id
-      var NE = { hot: '3778678', new: '3779629', soar: '19723756', origin: '2884035' };
-      return this.playlist('netease', NE[id] || NE.hot);
+      var ids = Object.keys(PROVIDERS).filter(function (k) {
+        return PROVIDERS[k].caps && PROVIDERS[k].caps.toplist;
+      });
+      if (!ids.length) return Promise.reject(new Error('未配置排行榜音源：请在 sources.config.js 注册支持 toplist 的 provider'));
+      return track(ids[0], PROVIDERS[ids[0]].toplist(id || 4));
     },
 
     /* ---------- 下载 ---------- */
