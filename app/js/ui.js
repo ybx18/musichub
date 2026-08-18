@@ -446,7 +446,8 @@
 
   function renderSearchIdle() {
     var hist = Store.history();
-    var html = '<div class="page-head"><h1>搜索</h1>' +
+    var html = '<div class="home"><div class="home__aurora"><i></i><i></i><i></i></div>' +
+               '<div class="page-head"><h1>搜索</h1>' +
                '<span class="page-head__sub">网易云音乐 · QQ 音乐</span></div>';
 
     /* 推荐歌单（QQ 官方榜单） */
@@ -470,7 +471,8 @@
     html += '<div class="state">' + icon('i-search') +
             '<div class="state__title">搜点什么来听</div>' +
             '<div class="state__desc">上面的分段控件可以切换搜索范围：' +
-            '「全部」会同时搜两个平台并分组显示，也可以单独只搜网易云或 QQ 音乐。</div></div>';
+            '「全部」会同时搜两个平台并分组显示，也可以单独只搜网易云或 QQ 音乐。</div></div>' +
+            '</div>';
 
     content.innerHTML = html;
     loadRecGrid();
@@ -1239,6 +1241,8 @@
    * ============================================================= */
   Player.on('track', function () {
     var t = Player.state.track;
+    var appEl = document.querySelector('.app');
+    if (appEl) appEl.classList.toggle('has-track', !!t);
     if (!t) {
       npName.innerHTML = '<span class="np__empty">未在播放</span>';
       npArtist.textContent = '';
@@ -1262,9 +1266,37 @@
     markPlayingRow();
   });
 
+  /* 封面取色：把正在播放的封面主色写入 --now-rgb，驱动播放条环境光 */
+  function extractCoverColor(src) {
+    var root = document.documentElement;
+    if (!src || src.indexOf('data:') === 0) { root.style.setProperty('--now-rgb', '45, 127, 249'); return; }
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function () {
+      try {
+        var c = document.createElement('canvas');
+        c.width = c.height = 24;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, 24, 24);
+        var d = ctx.getImageData(0, 0, 24, 24).data;
+        var r = 0, g = 0, b = 0, n = 0;
+        for (var i = 0; i < d.length; i += 4) {
+          var rr = d[i], gg = d[i + 1], bb = d[i + 2];
+          var mx = Math.max(rr, gg, bb), mn = Math.min(rr, gg, bb);
+          if (mx - mn > 12 && mx > 30) { r += rr; g += gg; b += bb; n++; } // 跳过近白/近黑与灰阶
+        }
+        if (!n) { r = d[0]; g = d[1]; b = d[2]; n = 1; }
+        root.style.setProperty('--now-rgb', Math.round(r / n) + ', ' + Math.round(g / n) + ', ' + Math.round(b / n));
+      } catch (e) { root.style.setProperty('--now-rgb', '45, 127, 249'); }
+    };
+    img.onerror = function () { root.style.setProperty('--now-rgb', '45, 127, 249'); };
+    img.src = src;
+  }
+
   Player.on('cover', function (s) {
     if (s && s.cover) {
       npCover.src = s.cover;
+      extractCoverColor(s.cover);
       $('#lyricCover').src = s.cover;
       var bg = $('#lyricBg');
       bg.style.backgroundImage = 'url("' + s.cover + '")';
@@ -1283,6 +1315,9 @@
       btnPlay.title = s.playing ? '暂停' : '播放';
     }
     btnPrev.disabled = btnNext.disabled = !s.queue || s.queue.length < 1;
+    // 黑胶唱片：播放旋转、暂停即停
+    var disc = $('#npDisc');
+    if (disc) disc.classList.toggle('is-playing', !!(s.playing && !s.loading && s.track));
     // 同步歌词页传输按钮
     $('#lyricPlay').innerHTML = s.loading
       ? '<span class="spinner" style="width:16px;height:16px"></span>'
