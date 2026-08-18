@@ -331,6 +331,11 @@
         duration: m.duration,
         platform: prim.platform,
         id: prim.id,
+        picId: prim.picId || '',
+        pic: prim.pic || '',
+        lyricId: prim.lyricId || prim.id,
+        urlId: prim.urlId || prim.id,
+        source: prim.source || prim.platform,
         isDual: isDual,
         sources: m.sources,
         uids: m.uids,
@@ -1165,8 +1170,8 @@
     npCover.src = BLANK;
     btnPlay.disabled = false;
     btnPrev.disabled = btnNext.disabled = Player.state.queue.length < 1;
-    timeTotal.textContent = t.duration ? fmtTime(t.duration / 1000) : '0:00';
-    lyricTimeTotal.textContent = t.duration ? fmtTime(t.duration / 1000) : '0:00';
+    timeTotal.textContent = t.duration ? fmtTime(t.duration) : '0:00';
+    lyricTimeTotal.textContent = t.duration ? fmtTime(t.duration) : '0:00';
     syncNpFav();
     syncQualityChip();
     $('#lyricName').textContent = t.name;
