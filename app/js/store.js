@@ -30,9 +30,7 @@
     crossMatch: true,
     customSearchUrl: '',
     customUrlUrl: '',
-    lastPlatform: 'all',
-    gatePass: '',         // 用户设置的进入密码
-    gateEnabled: true     // 密码门总开关（默认开启）
+    lastPlatform: 'all'
   };
 
   var Store = {

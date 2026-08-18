@@ -1453,6 +1453,61 @@ input.field:focus, textarea.field:focus { border-color: rgba(45,127,249,0.6); bo
 }
 
 /* =============================================================
+ * 移动端（手机 ≤560px）
+ * ============================================================= */
+@media (max-width: 560px) {
+  :root { --playbar-h: 56px; }
+  .toolbar { padding: 0 8px; gap: 6px; height: 48px; }
+  .toolbar__nav { display: none; }   /* 手机隐藏主导航图标，腾空间 */
+  #btnImport { display: none; }      /* 手机隐藏导入歌单按钮，腾空间 */
+  .toolbar__spacer { display: none; }  /* 取消 spacer 弹性空间 */
+  .search-field { width: auto; min-width: 0; flex: 1; }
+  .search-field:focus-within { width: auto; }
+  .search-field input { font-size: 13px; height: 30px; }
+  .segmented { padding: 2px; height: 30px; }
+  .segmented__item { padding: 0 10px; font-size: 12px; gap: 4px; }
+  .segmented__count { display: none; }
+  .segmented__dot { width: 6px; height: 6px; }
+  .page-head { padding-top: 4px; }
+  .page-head h1 { font-size: 20px; }
+  .page-head__sub { font-size: 11px; }
+  .section-bar { padding: 14px 0 6px; }
+  .section-bar h2 { font-size: 15px; }
+  .rec-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .rec-card__name { font-size: 12px; margin-top: 6px; white-space: normal; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+  .rec-card__meta { font-size: 10.5px; }
+  .playbar { padding: 0 10px; gap: 8px; }
+  .np { gap: 8px; flex: 1 1 auto; min-width: 0; }
+  .np__cover { width: 38px; height: 38px; border-radius: 8px; }
+  .np__meta { min-width: 0; }
+  .np__name { font-size: 12px; }
+  .np__artist { font-size: 10.5px; }
+  .np__fav { display: none; }
+  .pc { display: none; }   /* 隐藏中央控件，只保留底部进度条 */
+  .pc__progress { display: none; }
+  .pr { gap: 4px; }
+  .pr > #btnQuality, .pr > .quality-chip { display: none; }   /* 隐藏音质 */
+  .pr > #btnSleep, .pr > .quality-menu { display: none; }
+  .lyric-sheet__head { padding: 0 16px; }
+  .lyric-sheet__title { font-size: 18px; }
+  .pl-detail { padding: 4px 0 12px; gap: 12px; }
+  .pl-detail__cover { width: 80px; height: 80px; border-radius: 12px; }
+  .pl-detail__name { font-size: 14px; }
+  .track-head, .track-row, .skeleton-row {
+    grid-template-columns: 24px 1fr 46px 28px;
+    gap: 8px;
+    padding: 5px 8px;
+  }
+  .track-head__num, .track-row__num { font-size: 11px; }
+  .track-head__dur { font-size: 10.5px; }
+  .row-btn { width: 24px; height: 24px; }
+  .modal__card { max-width: calc(100vw - 32px); padding: 18px; }
+  .card { padding: 14px; }
+  .card__head { margin-bottom: 8px; }
+  .field { font-size: 13px; height: 32px; }
+}
+
+/* =============================================================
  * 无障碍
  * ============================================================= */
 @media (prefers-reduced-motion: reduce) {
