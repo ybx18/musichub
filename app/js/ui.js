@@ -524,7 +524,7 @@
         '</div>' +
         '<div class="track-row__artist">' + esc(t.artist) + '</div>' +
         '<div class="track-row__album">' + esc(t.album || '—') + '</div>' +
-        '<div class="track-row__dur">' + (t.duration ? fmtTime(t.duration / 1000) : '—') + '</div>' +
+        '<div class="track-row__dur">' + (t.duration ? fmtTime(t.duration) : '—') + '</div>' +
         '<div class="track-row__actions">' +
           '<button class="row-btn' + (isFav ? ' is-on' : '') + '" data-act="fav" title="' + (isFav ? '取消喜欢' : '喜欢') + '">' +
             '<svg><use href="#i-heart"></use></svg></button>' +
