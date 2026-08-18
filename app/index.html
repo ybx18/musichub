@@ -6,7 +6,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="color-scheme" content="light">
 <title>Music Hub</title>
-<link rel="stylesheet" href="css/app.css?v=20260818e">
+<link rel="stylesheet" href="css/app.css?v=20260818f">
 </head>
 <body>
 
@@ -97,8 +97,19 @@
   </defs>
 </svg>
 
-<div class="app">
+<!-- ===== 进入密码门 ===== -->
+<div class="gate" id="gate" hidden>
+  <div class="gate__card">
+    <div class="gate__mark"><svg><use href="#i-note"></use></svg></div>
+    <div class="gate__title">Music&nbsp;Hub</div>
+    <div class="gate__sub">请输入访问密码</div>
+    <input class="gate__input" id="gateInput" type="password" placeholder="访问密码" autocomplete="off" />
+    <button class="gate__btn" id="gateBtn">进入</button>
+    <div class="gate__err" id="gateErr"></div>
+  </div>
+</div>
 
+<div class="app">
   <!-- ===== 侧栏 ===== -->
   <aside class="sidebar">
     <div class="sidebar__brand">
@@ -203,7 +214,15 @@
     </div>
 
     <div class="pr">
-      <button class="quality-chip" id="qualityChip" title="音质">—</button>
+      <button class="quality-chip" id="qualityChip" title="选择首选音质">—</button>
+      <div class="quality-menu" id="qualityMenu" hidden>
+        <div class="quality-menu__title">选择首选音质</div>
+        <button class="quality-menu__item" data-q="999">Hi-Res（最高）</button>
+        <button class="quality-menu__item" data-q="740">无损 FLAC</button>
+        <button class="quality-menu__item" data-q="320">320 Kbps</button>
+        <button class="quality-menu__item" data-q="192">192 Kbps</button>
+        <button class="quality-menu__item" data-q="128">128 Kbps（最省流量）</button>
+      </div>
       <button class="ctl" id="btnSpeed" title="倍速"><svg><use href="#i-speed"></use></svg><span class="ctl__speed" id="speedLabel">1.0×</span></button>
       <button class="ctl ctl--sleep" id="btnSleep" title="定时关闭"><svg><use href="#i-clock"></use></svg></button>
       <button class="ctl" id="btnDownload" title="下载"><svg><use href="#i-download"></use></svg></button>
@@ -305,10 +324,10 @@
 <audio id="audio" preload="metadata" crossorigin="anonymous"></audio>
 <audio id="audioB" preload="none" crossorigin="anonymous"></audio>
 
-<script src="js/store.js?v=20260818e"></script>
-<script src="js/sources.js?v=20260818e"></script>
-<script src="js/sources.config.js?v=20260818e"></script>
-<script src="js/player.js?v=20260818e"></script>
-<script src="js/ui.js?v=20260818e"></script>
+<script src="js/store.js?v=20260818f"></script>
+<script src="js/sources.js?v=20260818f"></script>
+<script src="js/sources.config.js?v=20260818f"></script>
+<script src="js/player.js?v=20260818f"></script>
+<script src="js/ui.js?v=20260818f"></script>
 </body>
 </html>

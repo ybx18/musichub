@@ -30,7 +30,8 @@
     crossMatch: true,
     customSearchUrl: '',
     customUrlUrl: '',
-    lastPlatform: 'all'
+    lastPlatform: 'all',
+    gatePass: ''          // 进入密码，空 = 不启用
   };
 
   var Store = {
