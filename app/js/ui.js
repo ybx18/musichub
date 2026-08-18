@@ -527,6 +527,7 @@
     Sources.qqPlaylist(p.id).then(function (r) {
       if (!r || !r.list || !r.list.length) throw new Error('empty');
       var name = r.name || p.name;
+      app.lastTracks = r.list;   /* 供封面懒加载 findTrack / 单曲点击播放检索 */
       content.innerHTML = '<div class="page-head"><h1>' + esc(name) + '</h1>' +
         '<span class="page-head__sub">QQ 音乐歌单 · ' + r.list.length + ' 首</span></div>' +
         '<div class="pl-detail">' +
@@ -667,6 +668,10 @@
   function findTrack(uid) {
     var all = currentViewList();
     for (var i = 0; i < all.length; i++) if (all[i].uid === uid) return all[i];
+    /* 歌单/榜单等临时列表（不在视图结果/队列里），封面懒加载与单曲点击都靠它 */
+    if (app.lastTracks) {
+      for (var j = 0; j < app.lastTracks.length; j++) if (app.lastTracks[j].uid === uid) return app.lastTracks[j];
+    }
     return null;
   }
 
@@ -676,6 +681,11 @@
     var list = currentViewList();
     var idx = -1;
     for (var i = 0; i < list.length; i++) if (list[i].uid === track.uid) { idx = i; break; }
+    /* 歌单/榜单等临时列表：当前视图查不到时回退到 lastTracks */
+    if (idx < 0 && app.lastTracks) {
+      list = app.lastTracks;
+      for (var j = 0; j < list.length; j++) if (list[j].uid === track.uid) { idx = j; break; }
+    }
     Player.setQueue(list, idx, true);
   }
 
@@ -732,10 +742,12 @@
       }, { root: content, rootMargin: '160px' });
     }
 
-    imgs.forEach(function (img) {
+    imgs.forEach(function (img, i) {
       var uid = img.dataset.pic;
       if (picCache[uid]) { img.src = picCache[uid]; return; }
-      if (picObserver) picObserver.observe(img);
+      /* 首屏前 20 张立即加载（不等 IntersectionObserver 异步回调，进入即见）；其余继续 observer 限流 */
+      if (i < 20) loadCover(img);
+      else if (picObserver) picObserver.observe(img);
       else loadCover(img);
     });
   }
