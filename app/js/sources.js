@@ -1074,6 +1074,53 @@
       return track(ids[0], PROVIDERS[ids[0]].toplist(id || 4));
     },
 
+    /* ---------- QQ 歌单详情（公开接口；只认 jsonpCallback，不接受 callback/format=jsonp，需专用加载） ---------- */
+    qqPlaylist: function (dissid) {
+      var cbName = '__mh_pl_' + (Date.now().toString(36)) + '_' + (jsonpSeq++);
+      var u = 'https://c.y.qq.com/v8/fcg-bin/fcg_v8_playlist_cp.fcg?id=' + enc(dissid) +
+              '&format=json&inCharset=utf8&outCharset=utf-8&platform=yqq&needNewCode=0' +
+              '&jsonpCallback=' + cbName;
+      return new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        var done = false;
+        var timer = setTimeout(function () { finish(new Error('jsonp timeout')); }, 10000);
+        function finish(err, data) {
+          if (done) return;
+          done = true;
+          clearTimeout(timer);
+          try { delete global[cbName]; } catch (e) { global[cbName] = undefined; }
+          if (s.parentNode) s.parentNode.removeChild(s);
+          err ? reject(err) : resolve(data);
+        }
+        global[cbName] = function (data) { finish(null, data); };
+        s.onerror = function () { finish(new Error('jsonp network')); };
+        s.src = u;
+        s.charset = 'utf-8';
+        (document.head || document.documentElement).appendChild(s);
+      }).then(function (r) {
+        var cd = r && r.data && r.data.cdlist && r.data.cdlist[0];
+        if (!cd || !cd.songlist || !cd.songlist.length) throw new Error('qq playlist empty');
+        var name = String(cd.dissname || '').trim();
+        var list = cd.songlist.map(function (x) {
+          var singer = (x.singer || []).map(function (s) { return s.name; }).join(' / ');
+          return mkTrack({
+            platform: 'tencent',
+            id: x.songmid || x.songid || x.id,
+            name: x.songname || x.name,
+            artist: singer,
+            album: x.albumname || (x.album && x.album.name) || '',
+            duration: Number(x.interval) || 0,
+            picId: x.albummid || (x.album && x.album.mid) || '',
+            lyricId: x.songmid,
+            urlId: x.songmid,
+            source: 'qq-official',
+            raw: x
+          });
+        });
+        return { name: name, list: list };
+      });
+    },
+
     /* ---------- 下载 ---------- */
     download: function (trackObj, onProgress) {
       var self = this;

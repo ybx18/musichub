@@ -452,7 +452,7 @@
     /* 推荐歌单（QQ 官方榜单） */
     html += '<div class="section-bar"><i class="section-bar__tint" style="background:linear-gradient(90deg,#4f95ff,#2d7ff9)"></i>' +
             '<h2>推荐歌单</h2>' +
-            '<span class="section-bar__meta">热门榜单 · 点击播放</span></div>' +
+            '<span class="section-bar__meta">精选歌单 · 点击播放</span></div>' +
             '<div class="rec-grid" id="recGrid">' +
             '<div class="skeleton-row"><div></div><div></div><div></div></div>' +
             '</div>';
@@ -486,59 +486,55 @@
     if (ch) ch.addEventListener('click', function () { Store.clearHistory(); render(); });
   }
 
-  /* 首页推荐歌单：加载 QQ 官方热门榜单，卡片显示封面/名称/歌曲数 */
-  var REC_BOARDS = [
-    { id: 26,  name: 'QQ热歌榜' },
-    { id: 4,   name: 'QQ飙升榜' },
-    { id: 27,  name: 'QQ新歌榜' },
-    { id: 5,   name: 'QQ内地榜' }
+  /* 首页推荐歌单：硬编码 QQ 音乐真实歌单（发现接口查 Referer，故封面/名称离线收集；
+     点击时通过歌单详情接口动态拉取歌曲列表，该接口无 Referer 限制） */
+  var REC_PLAYLISTS = [
+    { id: '7729596131', name: '耳机里的秘密｜宝藏女声集合站', cover: 'http://qpic.y.qq.com/music_cover/qhuJFHlwiayRp1rhWXp8VQeibscm41CLicA0bJibzhQ/300?n=1' },
+    { id: '2968769762', name: '90后的独家记忆，那些熟悉的旋律', cover: 'http://p.qpic.cn/music_cover/uBpXolCGC2PDJrXCEJeeZqJsOW4WVW4wLcBFXwY/300?n=1' },
+    { id: '7727168567', name: '致失恋｜想起你时还总是会流泪', cover: 'http://qpic.y.qq.com/music_cover/kKO9Dn5MeibqAxBfypHl9j2KiaY66bGg3eQ/300?n=1' },
+    { id: '7798009869', name: '爱而不得的时候，再爱就不礼貌啦', cover: 'http://qpic.y.qq.com/music_cover/q4RY3dXkmLmSIsPMt4LzPvC2BF3DzLLwjaQ/300?n=1' },
+    { id: '7614366897', name: '侠气古风：腰间两把刀！断和了', cover: 'http://qpic.y.qq.com/music_cover/nKLrO3Sp1ctkpqK9rJmF2eXQ1aU/300?n=1' },
+    { id: '7426529126', name: '「片段」你与星河皆不可及', cover: 'http://qpic.y.qq.com/music_cover/LQ4zic8aEyNEreHkoP3XmZ1C4wQ/300?n=1' },
+    { id: '8081864568', name: '放空冥想｜解开脑海里的弦', cover: 'http://qpic.y.qq.com/music_cover/icF4iau8Sj7b1judxU8FPRmk0zcA/300?n=1' },
+    { id: '8165221528', name: '心跳100%，请查收这个甜蜜惊喜', cover: 'http://qpic.y.qq.com/music_cover/B2273uSn636GgXgN7FmI1VwsD0/300?n=1' }
   ];
-  var recLoading = false;
 
   function loadRecGrid() {
-    if (recLoading) return;
-    recLoading = true;
     var grid = $('#recGrid');
     if (!grid) return;
-    var done = 0;
-    REC_BOARDS.forEach(function (b) {
-      Sources.toplist('tencent', b.id).then(function (list) {
-        done++;
-        if (!list || !list.length) return;
-        var t0 = list[0];
-        var cover = t0 && Sources.picUrl(t0, 300);
-        var card = document.createElement('button');
-        card.className = 'rec-card';
-        card.innerHTML =
-          '<span class="rec-card__cover"' + (cover ? ' style="background-image:url(' + cover.replace(/"/g, '&quot;') + ')"' : '') + '>' +
-            '<span class="rec-card__play">' + icon('i-play') + '</span>' +
-          '</span>' +
-          '<span class="rec-card__name">' + esc(b.name) + '</span>' +
-          '<span class="rec-card__meta">' + list.length + ' 首</span>';
-        card.addEventListener('click', function () { openToplist(b.id, b.name, list); });
-        grid.appendChild(card);
-      }).catch(function () { done++; }).then(function () {
-        if (done >= REC_BOARDS.length) {
-          var sk = grid.querySelector('.skeleton-row');
-          if (sk) sk.remove();
-          recLoading = false;
-        }
-      });
+    grid.innerHTML = '';
+    REC_PLAYLISTS.forEach(function (p) {
+      var card = document.createElement('button');
+      card.className = 'rec-card';
+      card.innerHTML =
+        '<span class="rec-card__cover" style="background-image:url(' + p.cover.replace(/"/g, '&quot;') + ')">' +
+          '<span class="rec-card__play">' + icon('i-play') + '</span>' +
+        '</span>' +
+        '<span class="rec-card__name">' + esc(p.name) + '</span>' +
+        '<span class="rec-card__meta">QQ 音乐歌单</span>';
+      card.addEventListener('click', function () { openQqPlaylist(p); });
+      grid.appendChild(card);
     });
   }
 
-  /* 打开榜单：渲染成歌单列表并可直接播放 */
-  function openToplist(topid, name, list) {
-    if (!list || !list.length) return;
-    app.view = 'search';
-    app.keyword = name;
-    app.platform = 'all';
-    content.innerHTML = '<div class="page-head"><h1>' + esc(name) + '</h1>' +
-      '<span class="page-head__sub">QQ 官方榜单 · ' + list.length + ' 首</span></div>' +
-      renderTrackTable(list, { showAlbum: true });
-    bindTrackRows();
-    Player.setQueue(list.slice(), 0, true);
-    toast('正在播放：' + name);
+  /* 打开 QQ 歌单：详情接口动态拉取歌曲，渲染并播放 */
+  function openQqPlaylist(p) {
+    content.innerHTML = '<div class="page-head"><h1>' + esc(p.name) + '</h1>' +
+      '<span class="page-head__sub">QQ 音乐歌单 · 加载中…</span></div>' +
+      '<div class="track-list"><div class="skeleton-row"><div></div><div></div><div></div></div></div>';
+    Sources.qqPlaylist(p.id).then(function (r) {
+      if (!r || !r.list || !r.list.length) throw new Error('empty');
+      content.innerHTML = '<div class="page-head"><h1>' + esc(r.name || p.name) + '</h1>' +
+        '<span class="page-head__sub">QQ 音乐歌单 · ' + r.list.length + ' 首</span></div>' +
+        renderTrackTable(r.list, { showAlbum: true });
+      bindTrackRows();
+      Player.setQueue(r.list.slice(), 0, true);
+      toast('正在播放：' + (r.name || p.name));
+    }).catch(function (e) {
+      content.innerHTML = '<div class="state">' + icon('i-warn') +
+        '<div class="state__title">歌单加载失败</div>' +
+        '<div class="state__desc">QQ 歌单接口暂时不可用，稍后再试或换一个歌单。</div></div>';
+    });
   }
 
   /* ---------- 曲目表格 ---------- */
