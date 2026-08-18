@@ -275,15 +275,116 @@
 
     html += '<div class="page-head"><h1>' + esc(app.keyword) + '</h1>' +
             '<span class="page-head__sub">' +
-            (app.platform === 'all' ? '搜索全部平台' : '仅搜索 ' + PLATFORM_NAME[app.platform]) +
+            (app.platform === 'all' ? '搜索全部平台 · 同曲合并' : '仅搜索 ' + PLATFORM_NAME[app.platform]) +
             '</span></div>';
 
-    targets.forEach(function (p) {
-      html += renderPlatformSection(p, targets.length > 1);
-    });
+    if (targets.length > 1) {
+      html += renderMergedSection(targets);
+    } else {
+      targets.forEach(function (p) {
+        html += renderPlatformSection(p, false);
+      });
+    }
 
     content.innerHTML = html;
     bindTrackRows();
+  }
+
+  /* ---------- 多平台合并（双音源） ---------- */
+  // 归一楼名/歌手用于比对：去空白、转小写、去常见标点，保留中文与字母数字
+  function normKey(s) {
+    return (s || '').toString().toLowerCase().replace(/\s+/g, '').replace(/[‘’'""`~!@#$%^&*()_\-+=\[\]{}|\\:;"'<>,.?/]/g, '');
+  }
+
+  // 把多个平台的搜索结果合并：歌名+歌手相同者合并为一首，标记 isDual
+  function mergeResults(lists) {
+    var map = {};
+    var order = [];
+    lists.forEach(function (list) {
+      (list || []).forEach(function (t) {
+        if (!t || !t.name) return;
+        var key = normKey(t.name) + '\u0001' + normKey(t.artist);
+        if (!map[key]) {
+          map[key] = { name: t.name, artist: t.artist, album: t.album, duration: t.duration, sources: {}, uids: {} };
+          order.push(key);
+        }
+        var m = map[key];
+        m.sources[t.platform] = t;
+        m.uids[t.platform] = t.uid;
+        // 优先采用 netease 的专辑/时长信息（通常更完整）
+        if (t.platform === 'netease') {
+          if (t.album) m.album = t.album;
+          if (t.duration) m.duration = t.duration;
+        }
+      });
+    });
+    return order.map(function (k) {
+      var m = map[k];
+      var plats = Object.keys(m.sources);
+      var prim = m.sources['netease'] || m.sources['tencent'] || m.sources[plats[0]];
+      var isDual = plats.length > 1;
+      return {
+        uid: 'merged:' + k,
+        name: m.name,
+        artist: m.artist,
+        album: m.album,
+        duration: m.duration,
+        platform: prim.platform,
+        id: prim.id,
+        isDual: isDual,
+        sources: m.sources,
+        uids: m.uids,
+        raw: prim
+      };
+    });
+  }
+
+  // 合并视图（仅「全部」模式）：分组按平台状态显示，结果区为合并后的统一列表
+  function renderMergedSection(targets) {
+    var st = {};
+    targets.forEach(function (p) { st[p] = app.status[p]; });
+    var anyLoading = targets.some(function (p) { return st[p] === 'loading'; });
+    var anyOk = targets.some(function (p) { return st[p] === 'ok' && (app.results[p] || []).length; });
+    var anyError = targets.some(function (p) { return st[p] === 'error'; });
+
+    var merged = mergeResults(targets.map(function (p) { return app.results[p] || []; }));
+    var total = merged.length;
+
+    var out = '';
+    out += '<div class="section-bar">' +
+           '<i class="section-bar__tint" style="background:linear-gradient(90deg,#e8413c,#1ba85a)"></i>' +
+           '<h2>合并结果</h2>' +
+           '<span class="section-bar__meta">' +
+           (anyLoading && !anyOk ? '搜索中' :
+            anyError && !anyOk ? '部分源不可用' :
+            total ? total + ' 首（双音源已合并）' : '没有找到匹配的结果') +
+           '</span></div>';
+
+    if (anyLoading && !anyOk) {
+      out += '<div class="track-list">';
+      for (var i = 0; i < 6; i++) {
+        out += '<div class="skeleton-row"><div></div>' +
+               '<div style="display:flex;align-items:center;gap:10px"><div class="sk sk--cover"></div>' +
+               '<div style="flex:1"><div class="sk" style="width:46%"></div>' +
+               '<div class="sk" style="width:26%;margin-top:6px;height:8px"></div></div></div>' +
+               '<div class="sk" style="width:60%"></div><div class="sk" style="width:70%"></div>' +
+               '<div class="sk" style="width:60%"></div><div></div></div>';
+      }
+      out += '</div>';
+      return out;
+    }
+
+    if (!total) {
+      out += '<div class="state">' + icon('i-inbox') +
+             '<div class="state__title">没有找到匹配的结果</div>' +
+             '<div class="state__desc">换个关键词，或者试试只写歌名。' +
+             (anyError ? '<br>部分音源暂时不可用，可在「设置」里做连通性检测。' : '') +
+             '</div></div>';
+      return out;
+    }
+
+    out += renderTrackTable(merged, { showAlbum: true, merged: true });
+    return out;
   }
 
   function renderPlatformSection(p, showHeader) {
@@ -405,7 +506,13 @@
           '<img class="track-cover" loading="lazy" alt="" src="' + BLANK + '" data-pic="' + esc(t.uid) + '">' +
           '<div class="track-row__text">' +
             '<div class="track-row__name">' +
-              '<span class="badge badge--' + t.platform + '">' + (t.platform === 'netease' ? '网易云' : 'QQ') + '</span>' +
+              (t.isDual
+                ? '<span class="badge badge--dual" title="同时支持网易云与 QQ 音乐两个音源">双音源</span>'
+                : (t.platform === 'netease'
+                  ? '<span class="badge badge--netease">网易云</span>'
+                  : (t.platform === 'tencent'
+                    ? '<span class="badge badge--tencent">QQ</span>'
+                    : '<span class="badge badge--' + esc(t.platform) + '">' + esc(PLATFORM_NAME[t.platform] || t.platform) + '</span>'))) +
               esc(t.name) +
             '</div>' +
           '</div>' +
@@ -470,6 +577,9 @@
     if (app.view === 'favorites') return Store.favorites();
     if (app.view === 'recent') return Store.recent();
     if (app.view === 'queue') return Player.state.queue;
+    if (app.view === 'search' && app.platform === 'all') {
+      return mergeResults(platformsToQuery().map(function (p) { return app.results[p] || []; }));
+    }
     var out = [];
     platformsToQuery().forEach(function (p) { out = out.concat(app.results[p]); });
     return out;
@@ -885,14 +995,34 @@
     });
   });
 
-  qualityChip.addEventListener('click', function () {
-    var order = [999, 740, 320, 192, 128];
-    var cur = Store.settings().quality;
-    var i = order.indexOf(Number(cur));
-    var nextQ = order[(i + 1) % order.length];
-    Store.saveSettings({ quality: nextQ });
-    Player.setQuality(nextQ);
-    toast('首选音质：' + (nextQ >= 740 ? '无损' : nextQ + 'K'));
+  qualityChip.addEventListener('click', function (e) {
+    e.stopPropagation();
+    openQualityMenu();
+  });
+
+  function openQualityMenu() {
+    var menu = $('#qualityMenu');
+    if (!menu) return;
+    var cur = Number(Store.settings().quality);
+    Array.prototype.forEach.call(menu.querySelectorAll('.quality-menu__item'), function (b) {
+      b.classList.toggle('is-active', Number(b.dataset.q) === cur);
+    });
+    menu.hidden = !menu.hidden;
+  }
+
+  // 点击空白处 / 选中某项后关闭音质菜单
+  document.addEventListener('click', function (e) {
+    var menu = $('#qualityMenu');
+    if (!menu || menu.hidden) return;
+    if (e.target.closest('#qualityChip')) return;
+    var item = e.target.closest('.quality-menu__item');
+    if (item) {
+      var q = Number(item.dataset.q);
+      Store.saveSettings({ quality: q });
+      Player.setQuality(q);
+      toast('首选音质：' + (q >= 740 ? '无损' : q + 'K'));
+    }
+    menu.hidden = true;
   });
 
   function syncNpFav() {

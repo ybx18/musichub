@@ -582,6 +582,11 @@ button {
 .badge--netease { background: rgba(232, 65, 60, 0.12); color: #e8413c; }
 .badge--tencent { background: rgba(30, 186, 90, 0.14); color: #1ba85a; }
 .badge--hires   { background: rgba(255, 154, 31, 0.16); color: var(--tint-hires); }
+.badge--dual {
+  background: linear-gradient(135deg, rgba(232,65,60,0.14), rgba(30,186,90,0.14));
+  color: var(--accent);
+  font-weight: 700;
+}
 
 /* =============================================================
  * 状态块
@@ -783,7 +788,7 @@ button {
 .slider.is-dragging .slider__knob { transform: translate(-50%, -50%) scale(1.25); }
 
 /* 右：音质 / 倍速 / 定时 / 下载 / 歌词 / 音量 */
-.pr { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.pr { display: flex; align-items: center; justify-content: flex-end; gap: 4px; position: relative; }
 .volume { display: flex; align-items: center; gap: 6px; width: 108px; }
 .volume .slider { flex: 1; }
 
@@ -806,6 +811,63 @@ button {
 .quality-chip:active { transform: scale(0.94); }
 .quality-chip.is-lossless { background: rgba(255,154,31,0.16); color: var(--tint-hires); }
 .quality-chip.is-pending { background: rgba(28,52,92,0.07); color: var(--fg-tertiary); }
+
+/* 音质选择弹窗 */
+.quality-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  z-index: 200;
+  min-width: 168px;
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--bg-elevated, #fff);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
+  border: 1px solid var(--border, rgba(0,0,0,0.06));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: qmIn 0.16s var(--ease-out, ease-out);
+}
+@keyframes qmIn {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.quality-menu__title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fg-tertiary, #999);
+  padding: 6px 10px 4px;
+}
+.quality-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-primary, #1c1c1e);
+  cursor: pointer;
+  transition: background 0.12s ease;
+  text-align: left;
+  white-space: nowrap;
+}
+.quality-menu__item:hover { background: var(--accent-soft, rgba(45,127,249,0.08)); }
+.quality-menu__item.is-active {
+  background: var(--accent-soft, rgba(45,127,249,0.12));
+  color: var(--accent, #2d7ff9);
+  font-weight: 700;
+}
+.quality-menu__item.is-active::after {
+  content: '✓';
+  font-size: 13px;
+  margin-left: 12px;
+}
 
 /* =============================================================
  * 沉浸式歌词页（Apple Music 全屏，浅色玻璃）
