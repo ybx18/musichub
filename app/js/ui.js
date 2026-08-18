@@ -748,7 +748,16 @@
       '<div class="card__title">关于</div>' +
       '<div class="card__desc">纯前端实现，没有任何后端服务。' +
       '打开的这个页面就是全部程序，双击 HTML 文件即可运行，也可以放到任意静态托管上。' +
-      '仅供个人学习与技术研究，请支持正版音乐。</div></div></div>';
+      '仅供个人学习与技术研究，请支持正版音乐。</div></div>' +
+      '<div class="row"><div class="row__label">开源项目</div>' +
+      '<div class="row__control" style="margin-left:auto;text-align:right">' +
+      '<a href="https://github.com/ybx18/musichub" target="_blank" rel="noopener" style="color:var(--accent,#2d7ff9);text-decoration:none;font-size:13px;font-weight:600">github.com/ybx18/musichub ↗</a>' +
+      '</div></div>' +
+      '<div class="row"><div class="row__label">开源协议</div>' +
+      '<div class="row__control" style="margin-left:auto;font-size:13px;color:var(--fg-tertiary,#999)">GPL-3.0 License</div></div>' +
+      '<div class="row"><div class="row__label">作者</div>' +
+      '<div class="row__control" style="margin-left:auto;font-size:13px;font-weight:600">长路与星河</div></div>' +
+    '</div>';
 
     html += '</div>';
     content.innerHTML = html;
