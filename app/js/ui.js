@@ -737,14 +737,14 @@
     /* 访问密码 */
     html += '<div class="card">' +
       '<div class="card__head"><div class="card__title">访问密码</div>' +
-      '<div class="card__desc">设置后每次打开页面需输入密码才能进入，防止他人随意使用。' +
-      '留空则不启用。</div></div>' +
+      '<div class="card__desc">默认开启，每次打开页面需输入密码才能进入，防止他人随意使用。' +
+      '未设置时默认密码为 musichub，可在此修改；「关闭密码」可完全关闭此功能。</div></div>' +
       '<div class="row" style="display:block">' +
       '<div class="row__label" style="margin-bottom:6px">进入密码</div>' +
-      '<input class="field" id="setGatePass" type="password" placeholder="留空 = 不启用" value="' + esc(s.gatePass || '') + '"></div>' +
+      '<input class="field" id="setGatePass" type="password" placeholder="留空 = 恢复默认 musichub" value="' + esc(s.gatePass || '') + '"></div>' +
       '<div class="row"><div class="row__control" style="margin-left:0;display:flex;gap:8px">' +
       '<button class="btn btn--accent" id="saveGatePass">保存密码</button>' +
-      '<button class="btn" id="clearGatePass">清除</button></div></div>' +
+      '<button class="btn" id="clearGatePass">关闭密码</button></div></div>' +
     '</div>';
 
     /* 数据 */
@@ -823,14 +823,14 @@
     $('#saveGatePass').addEventListener('click', function () {
       var v = gpInput.value.trim();
       if (v && v.length < 4) { toast('密码至少 4 位'); return; }
-      Store.saveSettings({ gatePass: v });
+      Store.saveSettings({ gatePass: v, gateEnabled: true });
       if (v) sessionStorage.setItem('musichub_gate_ok', '1'); // 本次会话已通过，立即生效
-      toast(v ? '访问密码已设置' : '访问密码已清除');
+      toast(v ? '访问密码已设置' : '访问密码已恢复默认');
     });
     $('#clearGatePass').addEventListener('click', function () {
       gpInput.value = '';
-      Store.saveSettings({ gatePass: '' });
-      toast('访问密码已清除');
+      Store.saveSettings({ gatePass: '', gateEnabled: false });
+      toast('访问密码已关闭');
     });
 
     $('#saveCustom').addEventListener('click', function () {
@@ -1472,12 +1472,10 @@
     render();
     searchInput.focus();
 
-    /* 进入密码门：首次使用默认密码 musichub；设置页保存/清除后以用户设定为准 */
-    var rawS = {};
-    try { rawS = JSON.parse(localStorage.getItem('musichub.v1.settings') || '{}'); } catch (e) {}
-    var pass = Object.prototype.hasOwnProperty.call(rawS, 'gatePass')
-      ? (rawS.gatePass || '')
-      : 'musichub';   // 首次运行：默认密码
+    /* 进入密码门：默认开启，密码未设置时用默认 musichub；
+       用户清除密码（gateEnabled=false）后彻底关闭 */
+    var st = Store.settings();
+    var pass = (st.gateEnabled !== false) ? (st.gatePass || 'musichub') : '';
     if (pass && !sessionStorage.getItem('musichub_gate_ok')) {
       var gate = document.getElementById('gate');
       var input = document.getElementById('gateInput');
