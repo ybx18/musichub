@@ -429,6 +429,89 @@ button {
 }
 
 /* =============================================================
+ * 首页推荐歌单
+ * ============================================================= */
+.rec-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 6px 0 4px;
+}
+.rec-card {
+  display: block;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  min-width: 0;
+}
+.rec-card__cover {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border-radius: 14px;
+  background: var(--bg-field, rgba(28,52,92,0.06)) center / cover no-repeat;
+  box-shadow: 0 6px 18px rgba(10, 25, 50, 0.10);
+  overflow: hidden;
+  transition: transform 0.16s var(--ease-out, ease-out), box-shadow 0.16s var(--ease-out, ease-out);
+}
+.rec-card__cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 55%, rgba(12, 22, 40, 0.35));
+}
+.rec-card__play {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(45, 127, 249, 0.92);
+  box-shadow: 0 4px 12px rgba(45, 127, 249, 0.4);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.16s ease, transform 0.16s var(--ease-out, ease-out);
+}
+.rec-card__play svg { width: 13px; height: 13px; }
+.rec-card:hover .rec-card__cover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(10, 25, 50, 0.18);
+}
+.rec-card:hover .rec-card__play {
+  opacity: 1;
+  transform: translateY(0);
+}
+.rec-card__name {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.003em;
+  color: var(--fg-primary, #1c1c1e);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rec-card__meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--fg-tertiary, #999);
+}
+@media (max-width: 760px) {
+  .rec-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* =============================================================
  * 曲目列表
  * ============================================================= */
 .track-list { display: flex; flex-direction: column; }
@@ -1154,8 +1237,8 @@ input.field:focus, textarea.field:focus { border-color: rgba(45,127,249,0.6); bo
   justify-content: center;
   border-radius: 18px;
   color: #fff;
-  background: linear-gradient(135deg, #ff5f6d, #ff8e53);
-  box-shadow: 0 10px 24px rgba(255, 95, 109, 0.4);
+  background: var(--accent-grad, linear-gradient(135deg, #4f95ff 0%, #2d7ff9 100%));
+  box-shadow: 0 10px 24px rgba(45, 127, 249, 0.4);
 }
 .gate__mark svg { width: 28px; height: 28px; }
 .gate__title {
@@ -1185,8 +1268,8 @@ input.field:focus, textarea.field:focus { border-color: rgba(45,127,249,0.6); bo
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .gate__input:focus {
-  border-color: #ff5f6d;
-  box-shadow: 0 0 0 4px rgba(255, 95, 109, 0.15);
+  border-color: var(--accent, #2d7ff9);
+  box-shadow: 0 0 0 4px rgba(45, 127, 249, 0.15);
 }
 .gate__input::placeholder { letter-spacing: 0; color: rgba(60, 70, 90, 0.4); }
 .gate__btn {
@@ -1199,11 +1282,11 @@ input.field:focus, textarea.field:focus { border-color: rgba(45,127,249,0.6); bo
   font-weight: 650;
   color: #fff;
   cursor: pointer;
-  background: linear-gradient(135deg, #ff5f6d, #ff8e53);
-  box-shadow: 0 10px 22px rgba(255, 95, 109, 0.35);
+  background: var(--accent-grad, linear-gradient(135deg, #4f95ff 0%, #2d7ff9 100%));
+  box-shadow: 0 10px 22px rgba(45, 127, 249, 0.35);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.gate__btn:hover { box-shadow: 0 12px 26px rgba(255, 95, 109, 0.45); }
+.gate__btn:hover { box-shadow: 0 12px 26px rgba(45, 127, 249, 0.45); }
 .gate__btn:active { transform: scale(0.97); }
 .gate__err {
   min-height: 18px;

@@ -449,6 +449,14 @@
     var html = '<div class="page-head"><h1>搜索</h1>' +
                '<span class="page-head__sub">网易云音乐 · QQ 音乐</span></div>';
 
+    /* 推荐歌单（QQ 官方榜单） */
+    html += '<div class="section-bar"><i class="section-bar__tint" style="background:linear-gradient(90deg,#4f95ff,#2d7ff9)"></i>' +
+            '<h2>推荐歌单</h2>' +
+            '<span class="section-bar__meta">热门榜单 · 点击播放</span></div>' +
+            '<div class="rec-grid" id="recGrid">' +
+            '<div class="skeleton-row"><div></div><div></div><div></div></div>' +
+            '</div>';
+
     if (hist.length) {
       html += '<div class="section-bar"><h2>最近搜索</h2>' +
               '<span class="section-bar__meta"><button class="btn" data-act="clear-history">清除</button></span></div>' +
@@ -465,6 +473,7 @@
             '「全部」会同时搜两个平台并分组显示，也可以单独只搜网易云或 QQ 音乐。</div></div>';
 
     content.innerHTML = html;
+    loadRecGrid();
 
     $$('[data-act="use-history"]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -475,6 +484,61 @@
     });
     var ch = $('[data-act="clear-history"]');
     if (ch) ch.addEventListener('click', function () { Store.clearHistory(); render(); });
+  }
+
+  /* 首页推荐歌单：加载 QQ 官方热门榜单，卡片显示封面/名称/歌曲数 */
+  var REC_BOARDS = [
+    { id: 26,  name: 'QQ热歌榜' },
+    { id: 4,   name: 'QQ飙升榜' },
+    { id: 27,  name: 'QQ新歌榜' },
+    { id: 5,   name: 'QQ内地榜' }
+  ];
+  var recLoading = false;
+
+  function loadRecGrid() {
+    if (recLoading) return;
+    recLoading = true;
+    var grid = $('#recGrid');
+    if (!grid) return;
+    var done = 0;
+    REC_BOARDS.forEach(function (b) {
+      Sources.toplist('tencent', b.id).then(function (list) {
+        done++;
+        if (!list || !list.length) return;
+        var t0 = list[0];
+        var cover = t0 && Sources.picUrl(t0, 300);
+        var card = document.createElement('button');
+        card.className = 'rec-card';
+        card.innerHTML =
+          '<span class="rec-card__cover"' + (cover ? ' style="background-image:url(' + cover.replace(/"/g, '&quot;') + ')"' : '') + '>' +
+            '<span class="rec-card__play">' + icon('i-play') + '</span>' +
+          '</span>' +
+          '<span class="rec-card__name">' + esc(b.name) + '</span>' +
+          '<span class="rec-card__meta">' + list.length + ' 首</span>';
+        card.addEventListener('click', function () { openToplist(b.id, b.name, list); });
+        grid.appendChild(card);
+      }).catch(function () { done++; }).then(function () {
+        if (done >= REC_BOARDS.length) {
+          var sk = grid.querySelector('.skeleton-row');
+          if (sk) sk.remove();
+          recLoading = false;
+        }
+      });
+    });
+  }
+
+  /* 打开榜单：渲染成歌单列表并可直接播放 */
+  function openToplist(topid, name, list) {
+    if (!list || !list.length) return;
+    app.view = 'search';
+    app.keyword = name;
+    app.platform = 'all';
+    content.innerHTML = '<div class="page-head"><h1>' + esc(name) + '</h1>' +
+      '<span class="page-head__sub">QQ 官方榜单 · ' + list.length + ' 首</span></div>' +
+      renderTrackTable(list, { showAlbum: true });
+    bindTrackRows();
+    Player.setQueue(list.slice(), 0, true);
+    toast('正在播放：' + name);
   }
 
   /* ---------- 曲目表格 ---------- */
