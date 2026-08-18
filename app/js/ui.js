@@ -1233,10 +1233,10 @@
 
   Player.on('time', function (s) {
     if (!lyricLines.length || !lyricSheet.classList.contains('is-open')) return;
-    var ms = s.currentTime * 1000;
+    var sec = s.currentTime; // 歌词时间戳 t 单位为秒，统一用秒比较
     var i = -1;
     for (var n = 0; n < lyricLines.length; n++) {
-      if (lyricLines[n].t <= ms + 220) i = n; else break;
+      if (lyricLines[n].t <= sec + 0.22) i = n; else break;
     }
     if (i === lyricIndex) return;
     var prevEl = lyricScroll.querySelector('.lyric-line.is-current');
