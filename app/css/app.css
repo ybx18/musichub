@@ -507,6 +507,39 @@ button {
   font-size: 11px;
   color: var(--fg-tertiary, #999);
 }
+
+/* 歌单详情页头部 */
+.pl-detail {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 0 16px;
+}
+.pl-detail__cover {
+  width: 108px;
+  height: 108px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  object-fit: cover;
+  box-shadow: 0 10px 26px rgba(10, 25, 50, 0.18);
+  background: var(--bg-field, rgba(28,52,92,0.06));
+}
+.pl-detail__info { min-width: 0; }
+.pl-detail__name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  color: var(--fg-primary, #1c1c1e);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+.pl-detail__meta {
+  font-size: 12px;
+  color: var(--fg-tertiary, #999);
+  margin-bottom: 10px;
+}
 @media (max-width: 760px) {
   .rec-grid { grid-template-columns: repeat(2, 1fr); }
 }

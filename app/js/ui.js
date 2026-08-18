@@ -489,14 +489,14 @@
   /* 首页推荐歌单：硬编码 QQ 音乐真实歌单（发现接口查 Referer，故封面/名称离线收集；
      点击时通过歌单详情接口动态拉取歌曲列表，该接口无 Referer 限制） */
   var REC_PLAYLISTS = [
-    { id: '7729596131', name: '耳机里的秘密｜宝藏女声集合站', cover: 'http://qpic.y.qq.com/music_cover/qhuJFHlwiayRp1rhWXp8VQeibscm41CLicA0bJibzhQ/300?n=1' },
-    { id: '2968769762', name: '90后的独家记忆，那些熟悉的旋律', cover: 'http://p.qpic.cn/music_cover/uBpXolCGC2PDJrXCEJeeZqJsOW4WVW4wLcBFXwY/300?n=1' },
-    { id: '7727168567', name: '致失恋｜想起你时还总是会流泪', cover: 'http://qpic.y.qq.com/music_cover/kKO9Dn5MeibqAxBfypHl9j2KiaY66bGg3eQ/300?n=1' },
-    { id: '7798009869', name: '爱而不得的时候，再爱就不礼貌啦', cover: 'http://qpic.y.qq.com/music_cover/q4RY3dXkmLmSIsPMt4LzPvC2BF3DzLLwjaQ/300?n=1' },
-    { id: '7614366897', name: '侠气古风：腰间两把刀！断和了', cover: 'http://qpic.y.qq.com/music_cover/nKLrO3Sp1ctkpqK9rJmF2eXQ1aU/300?n=1' },
-    { id: '7426529126', name: '「片段」你与星河皆不可及', cover: 'http://qpic.y.qq.com/music_cover/LQ4zic8aEyNEreHkoP3XmZ1C4wQ/300?n=1' },
-    { id: '8081864568', name: '放空冥想｜解开脑海里的弦', cover: 'http://qpic.y.qq.com/music_cover/icF4iau8Sj7b1judxU8FPRmk0zcA/300?n=1' },
-    { id: '8165221528', name: '心跳100%，请查收这个甜蜜惊喜', cover: 'http://qpic.y.qq.com/music_cover/B2273uSn636GgXgN7FmI1VwsD0/300?n=1' }
+    { id: '7729596131', name: '耳机里的秘密｜宝藏女声集合站', cover: 'https://qpic.y.qq.com/music_cover/qhuJFHlwiayRp1rhWoJk9HaAkric2uNwiaX5vwuDF1mb4LgEId9z2eExg/300?n=1' },
+    { id: '2968769762', name: '90后的独家记忆，那些熟悉的旋律', cover: 'https://p.qpic.cn/music_cover/uBpXolCGC2PDJrXCEJeeZica8sugdAXKg650mNBYOB84WsKaAnl4Oiaw/600?n=1' },
+    { id: '7727168567', name: '致失恋｜想起你时还总是会流泪', cover: 'https://qpic.y.qq.com/music_cover/kKO9Dn5MeibqAxBfywKqTa5OKF21gEsPwp79aGbUibHDpGA4RLibERGibA/300?n=1' },
+    { id: '7798009869', name: '爱而不得的时候，再爱就不礼貌啦', cover: 'https://qpic.y.qq.com/music_cover/q4RY3dXkmLmSIsPMtBBa8JwxtvaPW1I4lgMHiaqAyqy2eZtOeuDcbBw/300?n=1' },
+    { id: '7614366897', name: '侠气古风：腰间两把刀！断和了', cover: 'https://qpic.y.qq.com/music_cover/nKLrO3Sp1ctkpqK9rmuze9wmyUcyQV38GpUdnwYNkAyEUicTQ2dCBoA/300?n=1' },
+    { id: '7426529126', name: '「片段」你与星河皆不可及', cover: 'https://qpic.y.qq.com/music_cover/LQ4zic8aEyNEreHko5rQ2a6S0JjhXjvoxzTWXvqiaZDDvJWlibGcCWa4g/300?n=1' },
+    { id: '8081864568', name: '放空冥想｜解开脑海里的弦', cover: 'https://qpic.y.qq.com/music_cover/icF4iau8Sj7b1judxoK8Mf70sxhVkvWpMRxCkokYqWaxndibYq2TjE2kQ/300?n=1' },
+    { id: '8165221528', name: '心跳100%，请查收这个甜蜜惊喜', cover: 'https://qpic.y.qq.com/music_cover/B2273uSn636GgXgN7l2m5aGaWYVibe0Gg8CUNwBHYOMN26T2CSMsTYQ/300?n=1' }
   ];
 
   function loadRecGrid() {
@@ -524,12 +524,24 @@
       '<div class="track-list"><div class="skeleton-row"><div></div><div></div><div></div></div></div>';
     Sources.qqPlaylist(p.id).then(function (r) {
       if (!r || !r.list || !r.list.length) throw new Error('empty');
-      content.innerHTML = '<div class="page-head"><h1>' + esc(r.name || p.name) + '</h1>' +
+      var name = r.name || p.name;
+      content.innerHTML = '<div class="page-head"><h1>' + esc(name) + '</h1>' +
         '<span class="page-head__sub">QQ 音乐歌单 · ' + r.list.length + ' 首</span></div>' +
+        '<div class="pl-detail">' +
+          '<img class="pl-detail__cover" src="' + p.cover.replace(/"/g, '&quot;') + '" alt="歌单封面" loading="lazy">' +
+          '<div class="pl-detail__info">' +
+            '<div class="pl-detail__name">' + esc(name) + '</div>' +
+            '<div class="pl-detail__meta">' + r.list.length + ' 首 · QQ 音乐</div>' +
+            '<button class="btn btn--accent" id="plPlayAll">播放全部</button>' +
+          '</div>' +
+        '</div>' +
         renderTrackTable(r.list, { showAlbum: true });
       bindTrackRows();
-      Player.setQueue(r.list.slice(), 0, true);
-      toast('正在播放：' + (r.name || p.name));
+      var playAll = $('#plPlayAll');
+      if (playAll) playAll.addEventListener('click', function () {
+        Player.setQueue(r.list.slice(), 0, true);
+        toast('正在播放：' + name);
+      });
     }).catch(function (e) {
       content.innerHTML = '<div class="state">' + icon('i-warn') +
         '<div class="state__title">歌单加载失败</div>' +
